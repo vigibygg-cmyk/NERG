@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="lt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>IMPOSTORIUS — Bendrininkų byla</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#15151a;
+    --bg-deep:#0e0e11;
+    --surface:#1f1e24;
+    --surface-2:#26252c;
+    --line:#38363f;
+    --ink:#e9e4da;
+    --muted:#928d97;
+    --crimson:#b8433c;
+    --crimson-dim:#7a332f;
+    --teal:#4d7c72;
+    --teal-dim:#365a53;
+    --gold:#c8a45c;
+    --radius:14px;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(ellipse at top, #1c1b21 0%, var(--bg-deep) 70%);
+    color:var(--ink);
+    font-family:'IBM Plex Sans', sans-serif;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    overflow-x:hidden;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.001s !important; transition-duration:0.001s !important;}
+  }
+  .stage{
+    width:100%;
+    max-width:480px;
+    min-height:640px;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:20px;
+    position:relative;
+    overflow:hidden;
+    box-shadow:0 30px 80px -20px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.02) inset;
+  }
+  .stage::before{
+    content:"";
+    position:absolute; inset:0;
+    background-image:
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px, transparent 1px, transparent 3px);
+    pointer-events:none;
+    opacity:0.5;
+  }
+  .screen{
+    display:none;
+    flex-direction:column;
+    min-height:640px;
+    padding:28px 24px 24px;
+    position:relative;
+    z-index:1;
+  }
+  .screen.active{display:flex; animation:fadeIn .35s ease;}
+  @keyframes fadeIn{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+
+  /* HEADER / MASTHEAD */
+  .masthead{
+    display:flex; align-items:baseline; justify-content:space-between;
+    border-bottom:1px solid var(--line);
+    padding-bottom:14px; margin-bottom:22px;
+  }
+  .masthead .brand{
+    font-family:'Fraunces', serif;
+    font-weight:700;
+    font-size:22px;
+    letter-spacing:0.5px;
+    color:var(--ink);
+  }
+  .masthead .brand span{color:var(--crimson);}
+  .case-tag{
+    font-family:'JetBrains Mono', monospace;
+    font-size:10.5px;
+    letter-spacing:1.5px;
+    color:var(--muted);
+    text-transform:uppercase;
+  }
+
+  h1.title{
+    font-family:'Fraunces', serif;
+    font-size:28px;
+    font-weight:600;
+    line-height:1.15;
+    margin:0 0 6px;
+  }
+  p.sub{
+    color:var(--muted);
+    font-size:14.5px;
+    line-height:1.5;
+    margin:0 0 24px;
+  }
+
+  /* STEPPER ROWS */
+  .field{margin-bottom:20px;}
+  .field-label{
+    display:flex; justify-content:space-between; align-items:center;
+    font-size:13px; font-weight:600; letter-spacing:0.3px;
+    color:var(--ink); margin-bottom:10px;
+  }
+  .field-label .hint{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px; color:var(--muted); font-weight:400;
+  }
+  .stepper{
+    display:flex; align-items:center; justify-content:space-between;
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:6px;
+  }
+  .stepper button{
+    width:44px; height:44px;
+    border-radius:9px;
+    border:none;
+    background:var(--bg-deep);
+    color:var(--ink);
+    font-size:20px;
+    font-weight:600;
+    cursor:pointer;
+    transition:background .15s, transform .1s;
+  }
+  .stepper button:hover{background:#2a2933;}
+  .stepper button:active{transform:scale(0.94);}
+  .stepper button:disabled{opacity:0.3; cursor:not-allowed;}
+  .stepper .count{
+    font-family:'JetBrains Mono', monospace;
+    font-size:26px; font-weight:700;
+    min-width:48px; text-align:center;
+    color:var(--gold);
+  }
+
+  .chip-row{display:flex; flex-wrap:wrap; gap:8px;}
+  .chip{
+    padding:9px 14px;
+    border-radius:999px;
+    border:1px solid var(--line);
+    background:var(--surface-2);
+    color:var(--muted);
+    font-size:13px; font-weight:500;
+    cursor:pointer;
+    transition:all .15s;
+    user-select:none;
+  }
+  .chip.on{
+    border-color:var(--teal);
+    background:rgba(77,124,114,0.18);
+    color:#a9d4c8;
+  }
+  .toggle-row{
+    display:flex; align-items:center; justify-content:space-between;
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:14px 16px;
+  }
+  .toggle-row .label{font-size:13.5px; font-weight:500;}
+  .toggle-row .desc{font-size:11.5px; color:var(--muted); margin-top:2px;}
+  .switch{
+    width:44px; height:26px; border-radius:999px;
+    background:var(--bg-deep); border:1px solid var(--line);
+    position:relative; cursor:pointer; flex-shrink:0; margin-left:12px;
+    transition:background .2s;
+  }
+  .switch.on{background:var(--teal-dim); border-color:var(--teal);}
+  .switch::after{
+    content:""; position:absolute; top:2px; left:2px;
+    width:20px; height:20px; border-radius:50%;
+    background:#cfcad2; transition:transform .2s;
+  }
+  .switch.on::after{transform:translateX(18px); background:#e9e4da;}
+
+  .spacer{flex:1;}
+
+  .btn{
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    width:100%;
+    padding:16px;
+    border-radius:12px;
+    border:none;
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:15px; font-weight:600;
+    letter-spacing:0.2px;
+    cursor:pointer;
+    transition:transform .1s, filter .15s;
+  }
+  .btn:active{transform:scale(0.98);}
+  .btn-primary{background:var(--crimson); color:#fff;}
+  .btn-primary:hover{filter:brightness(1.08);}
+  .btn-primary:disabled{background:var(--surface-2); color:var(--muted); cursor:not-allowed;}
+  .btn-ghost{background:transparent; border:1px solid var(--line); color:var(--ink);}
+  .btn-ghost:hover{background:var(--surface-2);}
+  .btn-small{padding:11px; font-size:13.5px;}
+
+  /* NAME LIST */
+  .name-row{
+    display:flex; align-items:center; gap:10px;
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:10px 12px;
+    margin-bottom:10px;
+  }
+  .name-row .num{
+    font-family:'JetBrains Mono', monospace;
+    color:var(--gold); font-size:12px; font-weight:700;
+    width:22px;
+  }
+  .name-row input{
+    flex:1; background:none; border:none; outline:none;
+    color:var(--ink); font-size:14.5px; font-family:'IBM Plex Sans', sans-serif;
+    padding:6px 0;
+  }
+  .name-row input::placeholder{color:#5c5964;}
+  .scroll-list{overflow-y:auto; margin:0 -4px; padding:0 4px 4px;}
+
+  /* PASS & REVEAL */
+  .pass-wrap{
+    flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center;
+  }
+  .progress-dots{
+    display:flex; gap:6px; justify-content:center; margin-bottom:26px;
+  }
+  .dot{width:7px; height:7px; border-radius:50%; background:var(--line);}
+  .dot.done{background:var(--teal);}
+  .dot.current{background:var(--gold);}
+
+  .dossier{
+    width:100%; max-width:300px;
+    aspect-ratio:5/6.6;
+    perspective:1400px;
+    margin:0 auto 26px;
+  }
+  .dossier-inner{
+    position:relative; width:100%; height:100%;
+    transform-style:preserve-3d;
+    transition:transform .55s cubic-bezier(.2,.8,.2,1);
+  }
+  .dossier.flipped .dossier-inner{transform:rotateY(180deg);}
+  .dossier-face{
+    position:absolute; inset:0;
+    border-radius:14px;
+    backface-visibility:hidden;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:22px;
+    border:1px solid var(--line);
+  }
+  .dossier-front{
+    background:
+      repeating-linear-gradient(135deg, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 2px, transparent 2px, transparent 14px),
+      var(--surface-2);
+  }
+  .dossier-front .stamp{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px; letter-spacing:3px; color:var(--muted);
+    border:1px solid var(--line); padding:5px 12px; border-radius:4px; margin-bottom:18px;
+  }
+  .dossier-front .who{
+    font-family:'Fraunces', serif; font-size:24px; font-weight:600; margin-bottom:8px;
+  }
+  .dossier-front .tap{font-size:12.5px; color:var(--muted);}
+  .dossier-back{
+    transform:rotateY(180deg);
+    background:var(--bg-deep);
+  }
+  .dossier-back.crew{background:linear-gradient(160deg, #1c2a26, #14201d);}
+  .dossier-back.impostor{background:linear-gradient(160deg, #2a1a19, #201312);}
+  .role-eyebrow{
+    font-family:'JetBrains Mono', monospace; font-size:10.5px; letter-spacing:2px;
+    text-transform:uppercase; margin-bottom:10px;
+  }
+  .role-eyebrow.crew{color:var(--teal);}
+  .role-eyebrow.impostor{color:var(--crimson);}
+  .role-word{
+    font-family:'Fraunces', serif; font-size:32px; font-weight:700; text-align:center; line-height:1.2;
+  }
+  .role-word.impostor{color:#e3928c;}
+  .role-word.crew{color:#a9d4c8;}
+  .role-sub{font-size:12.5px; color:var(--muted); margin-top:10px; text-align:center; padding:0 10px;}
+
+  .pass-name{
+    font-family:'Fraunces', serif; font-size:17px; margin-bottom:4px;
+  }
+  .pass-instr{font-size:13px; color:var(--muted); margin-bottom:22px;}
+
+  /* TIMER */
+  .timer-wrap{
+    flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;
+  }
+  .timer-ring{
+    width:220px; height:220px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    background:conic-gradient(var(--gold) calc(var(--pct,100)*1%), var(--surface-2) 0);
+    margin-bottom:28px;
+    transition:background 1s linear;
+  }
+  .timer-ring-inner{
+    width:186px; height:186px; border-radius:50%;
+    background:var(--surface);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'JetBrains Mono', monospace;
+    font-size:40px; font-weight:700; color:var(--ink);
+  }
+  .timer-label{font-size:13px; color:var(--muted); margin-bottom:26px; letter-spacing:0.3px;}
+
+  /* RESULTS GRID */
+  .results-grid{
+    display:grid; grid-template-columns:repeat(2, 1fr); gap:10px;
+    margin-bottom:18px;
+  }
+  .rcard{
+    border:1px solid var(--line); border-radius:12px; padding:12px;
+    background:var(--surface-2); cursor:pointer; transition:all .2s;
+    min-height:78px; display:flex; flex-direction:column; justify-content:center;
+  }
+  .rcard .rname{font-size:13px; font-weight:600; margin-bottom:4px;}
+  .rcard .rrole{font-family:'JetBrains Mono', monospace; font-size:10.5px; letter-spacing:0.5px; text-transform:uppercase; color:var(--muted);}
+  .rcard.revealed.crew{border-color:var(--teal); background:rgba(77,124,114,0.14);}
+  .rcard.revealed.crew .rrole{color:#a9d4c8;}
+  .rcard.revealed.impostor{border-color:var(--crimson); background:rgba(184,67,60,0.14);}
+  .rcard.revealed.impostor .rrole{color:#e3928c;}
+
+  .word-banner{
+    text-align:center; padding:16px; border-radius:12px;
+    background:var(--surface-2); border:1px solid var(--gold);
+    margin-bottom:18px;
+  }
+  .word-banner .wl{font-family:'JetBrains Mono', monospace; font-size:10.5px; letter-spacing:2px; color:var(--gold); margin-bottom:6px;}
+  .word-banner .wv{font-family:'Fraunces', serif; font-size:24px; font-weight:700;}
+
+  .footer-note{
+    text-align:center; font-size:11.5px; color:var(--muted); margin-top:auto; padding-top:16px;
+  }
+  a.reset-link{color:var(--muted); text-decoration:underline; cursor:pointer;}
+
+  ::-webkit-scrollbar{width:6px;}
+  ::-webkit-scrollbar-thumb{background:var(--line); border-radius:3px;}
+
+  .btn:focus-visible, .chip:focus-visible, .switch:focus-visible, .stepper button:focus-visible, .rcard:focus-visible{
+    outline:2px solid var(--gold); outline-offset:2px;
+  }
+</style>
+</head>
+<body>
+
+<div class="stage" id="stage">
+
+  <!-- SCREEN 0: SETUP -->
+  <section class="screen active" id="screen-setup">
+    <div class="masthead">
+      <div class="brand">IMPOST<span>OR</span>IUS</div>
+      <div class="case-tag">Byla Nr. 001</div>
+    </div>
+
+    <h1 class="title">Naujas tyrimas</h1>
+    <p class="sub">Vienas ar keli žaidėjai slepiasi tarp jūsų. Nustatykite bylos parametrus prieš pradėdami apklausą.</p>
+
+    <div class="field">
+      <div class="field-label">Žaidėjų skaičius <span class="hint">3–10</span></div>
+      <div class="stepper">
+        <button id="playersMinus" aria-label="Mažiau žaidėjų">−</button>
+        <div class="count" id="playersCount">5</div>
+        <button id="playersPlus" aria-label="Daugiau žaidėjų">+</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="field-label">Impostorių skaičius <span class="hint" id="impostorHint">1–4</span></div>
+      <div class="stepper">
+        <button id="impMinus" aria-label="Mažiau impostorių">−</button>
+        <div class="count" id="impCount">1</div>
+        <button id="impPlus" aria-label="Daugiau impostorių">+</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="field-label">Žodžių kategorijos <span class="hint">galima kelias</span></div>
+      <div style="display:flex; gap:8px; margin-bottom:10px;">
+        <button type="button" class="btn btn-ghost btn-small" id="catAll" style="flex:1;">Žymėti visas</button>
+        <button type="button" class="btn btn-ghost btn-small" id="catOne" style="flex:1;">Palikti tik vieną</button>
+      </div>
+      <div class="chip-row" id="categoryChips"></div>
+    </div>
+
+    <div class="field">
+      <div class="field-label">Diskusijos laikas <span class="hint" id="timerHint">3 min.</span></div>
+      <div class="stepper">
+        <button id="timeMinus" aria-label="Mažiau laiko">−</button>
+        <div class="count" id="timeCount">3</div>
+        <button id="timePlus" aria-label="Daugiau laiko">+</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="field-label">Impostoriaus užuomina</div>
+      <div class="chip-row" id="hintChips">
+        <div class="chip" id="hintTopic" data-hint="topic">Rodyti temą</div>
+        <div class="chip" id="hintWord" data-hint="word">Susijęs žodis</div>
+        <div class="chip" id="hintNone" data-hint="none">Jokios užuomos</div>
+      </div>
+    </div>
+
+    <div class="spacer"></div>
+    <button class="btn btn-primary" id="toNames">Kviesti žaidėjus →</button>
+  </section>
+
+  <!-- SCREEN 1: NAMES -->
+  <section class="screen" id="screen-names">
+    <div class="masthead">
+      <div class="brand">IMPOST<span>OR</span>IUS</div>
+      <div class="case-tag">Įtariamųjų sąrašas</div>
+    </div>
+    <h1 class="title">Įrašykite vardus</h1>
+    <p class="sub">Kiekvienas įtariamasis turi turėti vardą byloje. Galite palikti numatytuosius.</p>
+    <div class="scroll-list" id="nameList" style="max-height:340px;"></div>
+    <div class="spacer"></div>
+    <button class="btn btn-primary" id="toReveal">Pradėti skirstymą →</button>
+    <button class="btn btn-ghost btn-small" id="backToSetup" style="margin-top:10px;">← Atgal</button>
+  </section>
+
+  <!-- SCREEN 2: PASS & REVEAL -->
+  <section class="screen" id="screen-reveal">
+    <div class="masthead">
+      <div class="brand">IMPOST<span>OR</span>IUS</div>
+      <div class="case-tag" id="revealCaseTag">Vaidmenų skyrimas</div>
+    </div>
+    <div class="pass-wrap">
+      <div class="progress-dots" id="progressDots"></div>
+      <div class="pass-name" id="passName">Telefoną laiko: Žaidėjas 1</div>
+      <div class="pass-instr" id="passInstr">Patikrinkite, ar tai tinkamas žaidėjas, tada bakstelėkite mygtuką</div>
+
+      <div class="dossier" id="dossier">
+        <div class="dossier-inner">
+          <div class="dossier-face dossier-front">
+            <div class="stamp">SLAPTA</div>
+            <div class="who" id="dossierWho">Žaidėjas 1</div>
+            <div class="tap">Vaidmuo paslėptas — bakstelėkite mygtuką žemiau</div>
+          </div>
+          <div class="dossier-face dossier-back" id="dossierBack">
+            <div class="role-eyebrow" id="roleEyebrow">Komandos narys</div>
+            <div class="role-word" id="roleWord">ŠAKOTIS</div>
+            <div class="role-sub" id="roleSub">Tai jūsų slaptas žodis. Neminėkite jo tiesiogiai.</div>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" id="revealShow" style="max-width:300px;">Rodyti savo vaidmenį</button>
+      <button class="btn btn-primary" id="revealHide" style="max-width:300px; display:none;">Paslėpti ir perduoti kitam →</button>
+    </div>
+  </section>
+
+  <!-- SCREEN 3: TIMER -->
+  <section class="screen" id="screen-timer">
+    <div class="masthead">
+      <div class="brand">IMPOST<span>OR</span>IUS</div>
+      <div class="case-tag">Apklausa</div>
+    </div>
+    <div class="timer-wrap">
+      <div class="timer-label">Aptarkite ir bandykite nustatyti, kas meluoja</div>
+      <div class="timer-ring" id="timerRing" style="--pct:100">
+        <div class="timer-ring-inner" id="timerDisplay">03:00</div>
+      </div>
+      <button class="btn btn-primary" id="timerStart" style="max-width:280px; margin-bottom:10px;">Pradėti laikmatį</button>
+      <button class="btn btn-ghost btn-small" id="toResults" style="max-width:280px;">Pereiti prie balsavimo →</button>
+    </div>
+  </section>
+
+  <!-- SCREEN 4: RESULTS -->
+  <section class="screen" id="screen-results">
+    <div class="masthead">
+      <div class="brand">IMPOST<span>OR</span>IUS</div>
+      <div class="case-tag">Bylos išvados</div>
+    </div>
+    <h1 class="title">Kas buvo impostorius?</h1>
+    <p class="sub">Balsuokite garsiai, tuomet bakstelėkite kiekvieną vardą, kad atskleistumėte jo vaidmenį.</p>
+
+    <div class="word-banner">
+      <div class="wl">SLAPTAS ŽODIS</div>
+      <div class="wv" id="finalWord">ŠAKOTIS</div>
+    </div>
+
+    <div class="results-grid" id="resultsGrid"></div>
+
+    <div class="spacer"></div>
+    <button class="btn btn-primary" id="newRound">Nauja byla, tie patys žaidėjai</button>
+    <div class="footer-note"><a class="reset-link" id="fullReset">Pradėti visiškai iš naujo</a></div>
+  </section>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- WORD BANK ----------
+  const WORD_BANK = {
+    "Maistas ir gėrimai": [["Picka","Krosnis"],["Košė","Pusryčiai"],["Cepelinai","Virimas"],["Kastinys","Duona"],["Šaltibarščiai","Vasara"],["Bulvių plokštainis","Orkaitė"],["Varškės apkepas","Traškumas"],["Kugelis","Šventė"],["Grybų sriuba","Ruduo"],["Vėdarai","Skrandis"],["Skilandis","Rūkykla"],["Šakotis","Vestuvės"],["Spurgos","Aliejus"],["Bandelė","Kepykla"],["Duona","Rugiai"],["Sūris","Fermentas"],["Medus","Bitė"],["Ledai","Vaikai"],["Kava","Rytas"],["Arbata","Puodelis"],["Alus","Apyniai"],["Kisielius","Krakmolas"],["Blynai","Keptuvė"],["Barščiai","Burokėliai"],["Koldūnai","Įdaras"],["Chalva","Sezamas"],["Grietinė","Rūgštumas"],["Sviestas","Riebumas"],["Kiaušinienė","Trynys"],["Omletas","Pienas"],["Makaronai","Italija"],["Ryžiai","Azija"],["Grikiai","Dieta"],["Avižų košė","Sveikata"],["Bulvių košė","Piurė"],["Cukinijos","Daržas"],["Pomidorai","Salotos"],["Agurkai","Raugas"],["Obuoliai","Sodas"],["Kriaušės","Medis"],["Vyšnios","Kauliukas"],["Braškės","Gegužė"],["Mėlynės","Miškas"],["Serbentai","Krūmas"],["Agrastai","Dygliai"],["Slyvos","Rugpjūtis"],["Morkos","Triušis"],["Burokėliai","Raudona"],["Kopūstai","Rauginimas"],["Svogūnai","Ašaros"],["Česnakai","Kvapas"],["Grybai","Rinkimas"],["Silkė","Marinatas"],["Lašiša","Rausva"],["Karpis","Kalėdos"],["Vėžiai","Ežeras"],["Dešra","Grilis"],["Kumpis","Riebalai"],["Lašiniai","Kiaulė"],["Sūrio pyragas","Gimtadienis"],["Vaflis","Cukrus"],["Sausainiai","Arbata"],["Šokoladas","Kakava"],["Saldainiai","Vaikai"],["Uogienė","Stiklainis"],["Marmeladas","Vaisiai"],["Kompotas","Darželis"],["Gira","Duona"],["Midus","Senovė"],["Vynas","Vynuogė"],["Šampanas","Naujieji metai"],["Kefyras","Rūgimas"],["Jogurtas","Bakterijos"],["Varškė","Baltymas"],["Grietinėlė","Plakimas"],["Ropė","Žiema"],["Griežinėlė","Pjaustymas"],["Krapai","Prieskoniai"],["Krienai","Aštrumas"]],
+    "Gyvūnai": [["Vilkas","Miškas"],["Lokys","Urvas"],["Stumbras","Giria"],["Elnias","Ragai"],["Šernas","Purvas"],["Kiškis","Greitis"],["Lapė","Gudrumas"],["Ežys","Spygliai"],["Gandras","Stogas"],["Gulbė","Ežeras"],["Erelis","Dangus"],["Pelėda","Naktis"],["Kregždė","Pavasaris"],["Genys","Medis"],["Voverė","Riešutai"],["Ožka","Pienas"],["Karvė","Ferma"],["Arklys","Balnas"],["Avis","Vilna"],["Višta","Kiaušinis"],["Katė","Ūsai"],["Šuo","Ištikimybė"],["Bitė","Avilys"],["Skruzdėlė","Skruzdėlynas"],["Kurmis","Požemis"],["Barsukas","Ola"],["Ūdra","Upė"],["Bebras","Užtvanka"],["Šeškas","Kvapas"],["Kiaunė","Kailis"],["Zuikis","Baimė"],["Stirna","Šuoliai"],["Briedis","Pelkė"],["Vanagas","Grobis"],["Kranklys","Juoda"],["Varna","Lizdas"],["Žvirblis","Miestas"],["Kielė","Uodega"],["Volungė","Giesmė"],["Pempė","Laukas"],["Antis","Tvenkinys"],["Žąsis","Plunksnos"],["Kalakutas","Šventė"],["Kiaulė","Kiaulidė"],["Ožys","Barzda"],["Triušis","Narvas"],["Žiurkė","Kanalizacija"],["Pelė","Sūris"],["Driežas","Saulė"],["Gyvatė","Nuodai"],["Rupūžė","Karpa"],["Varlė","Kurkimas"],["Vabalas","Sparnai"],["Boružė","Taškeliai"],["Peteliškė","Metamorfozė"],["Uodas","Kraujas"],["Musė","Šiukšlės"],["Voras","Tinklas"],["Kirmėlė","Žemė"],["Meška","Medus"],["Antilopė","Savana"],["Žirafa","Kaklas"],["Dramblys","Straublys"],["Liūtas","Karalius"],["Tigras","Dryžiai"],["Beždžionė","Bananas"],["Papūga","Spalvos"],["Delfinas","Vandenynas"],["Ryklys","Dantys"],["Vėžlys","Kiautas"],["Pingvinas","Ledynas"],["Flamingas","Rausva"]],
+    "Profesijos": [["Gydytojas","Ligoninė"],["Mokytojas","Klasė"],["Inžinierius","Brėžinys"],["Dailidė","Medis"],["Stalius","Baldai"],["Kalvis","Priekalas"],["Siuvėjas","Adata"],["Kirpėjas","Žirklės"],["Virėjas","Restoranas"],["Vairuotojas","Vairas"],["Pilotas","Dangus"],["Ugniagesys","Žarna"],["Policininkas","Antrankiai"],["Kareivis","Uniforma"],["Žvejys","Meškerė"],["Ūkininkas","Traktorius"],["Statybininkas","Šalmas"],["Elektrikas","Laidai"],["Santechnikas","Vamzdis"],["Advokatas","Įstatymas"],["Teisėjas","Plaktukas"],["Aktorius","Scena"],["Muzikantas","Instrumentas"],["Dailininkas","Teptukas"],["Rašytojas","Rašalas"],["Žurnalistas","Naujienos"],["Fotografas","Kamera"],["Architektas","Pastatas"],["Buhalteris","Skaičiai"],["Bankininkas","Pinigai"],["Pardavėjas","Kasa"],["Kasininkas","Čekis"],["Barmenas","Taurė"],["Padavėjas","Padėklas"],["Slaugytoja","Švirkštas"],["Vaistininkas","Tabletės"],["Veterinaras","Gyvūnas"],["Bibliotekininkas","Knyga"],["Sekretorė","Kalendorius"],["Vadybininkas","Susitikimas"],["Programuotojas","Klaviatūra"],["Mokslininkas","Laboratorija"],["Astronautas","Skafandras"],["Jūreivis","Laivas"],["Kapitonas","Vairalazdė"],["Konduktorius","Bilietas"],["Valytoja","Šluota"],["Sodininkas","Gėlynas"],["Miškininkas","Medžiai"],["Mėsininkas","Peilis"],["Kepėjas","Duona"],["Batsiuvys","Batai"],["Auklė","Vaikas"],["Treneris","Švilpukas"],["Gidas","Žemėlapis"],["Skulptorius","Kaltas"],["Fizioterapeutas","Masažas"],["Odontologas","Dantys"],["Chirurgas","Skalpelis"],["Notaras","Antspaudas"],["Redaktorius","Tekstas"],["Vertėjas","Žodynas"]],
+    "Vietos ir pastatai": [["Bažnyčia","Varpas"],["Pilis","Bokštas"],["Turgus","Prekyba"],["Biblioteka","Tyla"],["Mokykla","Skambutis"],["Ligoninė","Balta"],["Stotis","Bilietas"],["Uostas","Laivas"],["Paplūdimys","Smėlis"],["Miškas","Medžiai"],["Kalnas","Viršūnė"],["Ežeras","Žvejyba"],["Upė","Srovė"],["Sodas","Vaisiai"],["Parkas","Suoliukas"],["Muziejus","Eksponatas"],["Teatras","Uždanga"],["Kavinė","Kvapas"],["Restoranas","Meniu"],["Viešbutis","Kambarys"],["Fabrikas","Dūmai"],["Ferma","Gyvuliai"],["Malūnas","Sparnai"],["Pirtis","Garas"],["Kapinės","Kryžius"],["Vienuolynas","Malda"],["Rotušė","Valdžia"],["Aikštė","Fontanas"],["Tiltas","Krantas"],["Bokštas","Aukštis"],["Švyturys","Šviesa"],["Oro uostas","Lėktuvas"],["Zoologijos sodas","Narvas"],["Botanikos sodas","Augalai"],["Stadionas","Minia"],["Baseinas","Chloras"],["Sporto salė","Svarmenys"],["Darželis","Vaikai"],["Universitetas","Paskaita"],["Prekybos centras","Vežimėlis"],["Vaistinė","Tabletės"],["Policijos nuovada","Pareigūnas"],["Priešgaisrinė stotis","Žarna"],["Kino teatras","Popkornas"],["Naktinis klubas","Muzika"],["Sinagoga","Žvaigždė"],["Mečetė","Kupolas"],["Dvaras","Aristokratija"],["Sodyba","Kaimas"],["Karčiama","Alus"],["Etnografinė sodyba","Tradicija"],["Pieninė","Pienas"],["Kalvė","Priekalas"],["Malka sandėlis","Kirvis"],["Bunkeris","Slėptuvė"],["Observatorija","Teleskopas"]],
+    "Buities daiktai": [["Šluota","Dulkės"],["Puodas","Sriuba"],["Keptuvė","Aliejus"],["Šaukštas","Metalas"],["Peilis","Ašmenys"],["Lėkštė","Maistas"],["Taurė","Vynas"],["Lova","Miegas"],["Spinta","Drabužiai"],["Veidrodis","Atspindys"],["Žvakė","Liepsna"],["Laikrodis","Laikas"],["Skėtis","Lietus"],["Kėdė","Sėdėjimas"],["Stalas","Valgymas"],["Pagalvė","Minkšta"],["Antklodė","Šiluma"],["Rankšluostis","Vonia"],["Muilas","Putos"],["Šepetys","Dantys"],["Šakutė","Dantukai"],["Puodukas","Kava"],["Ąsotis","Vanduo"],["Dubuo","Salotos"],["Kibiras","Smėlis"],["Šluostė","Grindys"],["Kilimas","Raštas"],["Užuolaida","Langas"],["Lempa","Elektra"],["Televizorius","Ekranas"],["Šaldytuvas","Šaltis"],["Skalbimo mašina","Purvas"],["Dulkių siurblys","Oras"],["Lygintuvas","Klostės"],["Virdulys","Verdantis"],["Orkaitė","Kepimas"],["Mikrobangė","Greitis"],["Indaplovė","Švara"],["Rakto pakabukas","Saugumas"],["Lagaminas","Kelionė"],["Piniginė","Pinigai"],["Akiniai","Regėjimas"],["Kepurė","Galva"],["Pirštinės","Pirštai"],["Šalikas","Kaklas"],["Diržas","Kelnės"],["Batai","Pėdos"],["Kojinės","Vilna"],["Adata","Dūris"],["Siūlai","Mazgas"],["Žirklės","Kirpimas"],["Vinis","Kalimas"],["Plaktukas","Vinis"],["Atsuktuvas","Varžtas"],["Virvė","Raištis"],["Kopėčios","Aukštis"]],
+    "Sportas ir laisvalaikis": [["Krepšinis","Lankas"],["Futbolas","Vartai"],["Tinklinis","Tinklas"],["Bėgimas","Takelis"],["Plaukimas","Baseinas"],["Slidinėjimas","Sniegas"],["Čiuožimas","Ledas"],["Dviratis","Ratai"],["Boksas","Pirštinės"],["Imtynės","Kilimėlis"],["Šachmatai","Karalius"],["Žvejyba","Meškerė"],["Medžioklė","Šautuvas"],["Turizmas","Kuprinė"],["Joga","Kvėpavimas"],["Tenisas","Raketė"],["Golfas","Lazda"],["Rankinis","Kamuolys"],["Ledo ritulys","Pačiūžos"],["Šuoliai į vandenį","Trampolinas"],["Irklavimas","Valtis"],["Buriavimas","Vėjas"],["Alpinizmas","Virvė"],["Šaudymas iš lanko","Taikinys"],["Dziudo","Kimono"],["Kikboksas","Smūgis"],["Šokiai","Muzika"],["Aerobika","Ritmas"],["Stalo tenisas","Kamuoliukas"],["Badmintonas","Volanas"],["Riedučiai","Ratukai"],["Riedlentė","Trikas"],["Kartingas","Greitis"],["Šaškės","Lenta"],["Bilijardas","Kijis"],["Boulingas","Kėgliai"],["Petankė","Rutuliukai"],["Sunkumų kilnojimas","Štanga"],["Gimnastika","Lankstumas"],["Fechtavimas","Kardas"],["Maratonas","Ištvermė"],["Jodinėjimas","Balnas"],["Burlenčių sportas","Banga"]],
+    "Gamta ir reiškiniai": [["Perkūnija","Dundėjimas"],["Vaivorykštė","Spalvos"],["Sniegas","Balta"],["Lietus","Skėtis"],["Vėjas","Malūnas"],["Rūkas","Neaiškumas"],["Šalna","Ruduo"],["Saulėtekis","Rytas"],["Saulėlydis","Vakaras"],["Uraganas","Griūtis"],["Potvynis","Užliejimas"],["Ugnikalnis","Lava"],["Žemės drebėjimas","Plyšys"],["Ledkalnis","Vandenynas"],["Šaltinis","Gėlas vanduo"],["Kruša","Ledukai"],["Debesys","Dangus"],["Žaibas","Griausmas"],["Audra","Griaustinis"],["Sausra","Trūkumas"],["Speigas","Šaltis"],["Atodrėkis","Tirpimas"],["Rasa","Žolė"],["Šerkšnas","Ledas"],["Pūga","Pusnys"],["Viesulas","Sukūrys"],["Uola","Akmuo"],["Ola","Urvas"],["Slėnis","Kalnai"],["Dykuma","Smėlis"],["Oazė","Palmė"],["Ledynas","Amžinas"],["Geizeris","Karštas vanduo"],["Mėnulis","Naktis"],["Saulė","Šviesa"],["Žvaigždė","Mirgėjimas"],["Kometa","Uodega"],["Vulkanas","Išsiveržimas"],["Kalvos","Reljefas"],["Pelkė","Samanos"],["Balta naktis","Vasara"],["Šiaurės pašvaistė","Dangus"]],
+    "Transportas": [["Automobilis","Ratai"],["Autobusas","Maršrutas"],["Traukinys","Bėgiai"],["Lėktuvas","Sparnai"],["Laivas","Vandenynas"],["Motociklas","Šalmas"],["Traktorius","Laukas"],["Valtis","Irklas"],["Baidarė","Upė"],["Tramvajus","Miestas"],["Troleibusas","Elektra"],["Raketa","Kosmosas"],["Oro balionas","Krepšys"],["Sraigtasparnis","Sraigtas"],["Keltas","Krantas"],["Jachta","Prabanga"],["Povandeninis laivas","Gelmė"],["Metro","Požemis"],["Taksi","Skaitiklis"],["Greitosios pagalbos automobilis","Sirena"],["Gaisrinė mašina","Žarna"],["Sunkvežimis","Krovinys"],["Ekskavatorius","Kaušas"],["Buldozeris","Peilis"],["Kranas","Kablys"],["Rogutės","Sniegas"],["Paspirtukas","Ratukai"],["Rikša","Azija"],["Karieta","Arkliai"],["Vežimas","Šienas"],["Vagonas","Prekės"],["Gondola","Venecija"],["Batutas","Elastinis"],["Furgonas","Dėžės"],["Cisterna","Skystis"]]
+  };
+
+  function shuffleArray(arr){
+    for(let i = arr.length-1; i>0; i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+  const ALL_CATEGORIES = Object.keys(WORD_BANK);
+
+  // ---------- STATE ----------
+  let state = {
+    players: 5,
+    impostors: 1,
+    categories: new Set(ALL_CATEGORIES),
+    timerMinutes: 3,
+    hintMode: 'topic', // 'topic' | 'word' | 'none'
+    names: [],
+    roles: [],      // 'crew' | 'impostor', index-aligned with names
+    word: "",
+    hintWord: "",
+    category: "",
+    deck: [],
+    deckIndex: 0,
+    deckKey: "",
+    revealOrder: [],
+    revealStage: 'handoff', // 'handoff' | 'shown'
+    revealIndex: 0,
+    timerSeconds: 180,
+    timerInterval: null,
+    timerRunning: false
+  };
+
+  const $ = id => document.getElementById(id);
+
+  function showScreen(id){
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    $(id).classList.add('active');
+  }
+
+  // ---------- SETUP SCREEN ----------
+  function clampImpostors(){
+    const maxImp = Math.min(4, state.players - 2 >= 1 ? state.players - 1 : 1);
+    if(state.impostors > maxImp) state.impostors = maxImp;
+    if(state.impostors < 1) state.impostors = 1;
+  }
+
+  function renderSetup(){
+    $('playersCount').textContent = state.players;
+    clampImpostors();
+    const maxImp = Math.min(4, state.players - 1);
+    $('impCount').textContent = state.impostors;
+    $('impostorHint').textContent = '1–' + maxImp;
+    $('impMinus').disabled = state.impostors <= 1;
+    $('impPlus').disabled = state.impostors >= maxImp;
+    $('playersMinus').disabled = state.players <= 3;
+    $('playersPlus').disabled = state.players >= 10;
+    $('timeCount').textContent = state.timerMinutes;
+    $('timerHint').textContent = state.timerMinutes + ' min.';
+    $('timeMinus').disabled = state.timerMinutes <= 1;
+    $('timePlus').disabled = state.timerMinutes >= 10;
+  }
+
+  function renderCategoryChips(){
+    const wrap = $('categoryChips');
+    wrap.innerHTML = '';
+    ALL_CATEGORIES.forEach(cat => {
+      const chip = document.createElement('div');
+      chip.className = 'chip' + (state.categories.has(cat) ? ' on' : '');
+      chip.textContent = cat;
+      chip.tabIndex = 0;
+      chip.addEventListener('click', () => {
+        if(state.categories.has(cat)){
+          if(state.categories.size > 1) state.categories.delete(cat);
+        } else {
+          state.categories.add(cat);
+        }
+        renderCategoryChips();
+      });
+      wrap.appendChild(chip);
+    });
+  }
+
+  $('playersMinus').addEventListener('click', () => { if(state.players>3){ state.players--; renderSetup(); rebuildNamesIfNeeded(); }});
+  $('playersPlus').addEventListener('click', () => { if(state.players<10){ state.players++; renderSetup(); rebuildNamesIfNeeded(); }});
+  $('impMinus').addEventListener('click', () => { if(state.impostors>1){ state.impostors--; renderSetup(); }});
+  $('impPlus').addEventListener('click', () => { const maxImp = Math.min(4, state.players-1); if(state.impostors<maxImp){ state.impostors++; renderSetup(); }});
+  $('timeMinus').addEventListener('click', () => { if(state.timerMinutes>1){ state.timerMinutes--; renderSetup(); }});
+  $('timePlus').addEventListener('click', () => { if(state.timerMinutes<10){ state.timerMinutes++; renderSetup(); }});
+  function renderHintChips(){
+    $('hintTopic').classList.toggle('on', state.hintMode === 'topic');
+    $('hintWord').classList.toggle('on', state.hintMode === 'word');
+    $('hintNone').classList.toggle('on', state.hintMode === 'none');
+  }
+  $('hintTopic').addEventListener('click', () => { state.hintMode = 'topic'; renderHintChips(); });
+  $('hintWord').addEventListener('click', () => { state.hintMode = 'word'; renderHintChips(); });
+  $('hintNone').addEventListener('click', () => { state.hintMode = 'none'; renderHintChips(); });
+
+  $('catAll').addEventListener('click', () => {
+    state.categories = new Set(ALL_CATEGORIES);
+    renderCategoryChips();
+  });
+  $('catOne').addEventListener('click', () => {
+    const first = ALL_CATEGORIES.find(c => state.categories.has(c)) || ALL_CATEGORIES[0];
+    state.categories = new Set([first]);
+    renderCategoryChips();
+  });
+
+  function rebuildNamesIfNeeded(){
+    // keep existing names where possible, extend/trim
+    const arr = [];
+    for(let i=0;i<state.players;i++){
+      arr.push(state.names[i] || ('Žaidėjas ' + (i+1)));
+    }
+    state.names = arr;
+  }
+
+  $('toNames').addEventListener('click', () => {
+    rebuildNamesIfNeeded();
+    renderNameList();
+    showScreen('screen-names');
+  });
+
+  // ---------- NAMES SCREEN ----------
+  function renderNameList(){
+    const wrap = $('nameList');
+    wrap.innerHTML = '';
+    for(let i=0;i<state.players;i++){
+      const row = document.createElement('div');
+      row.className = 'name-row';
+      const num = document.createElement('div');
+      num.className = 'num';
+      num.textContent = String(i+1).padStart(2,'0');
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.maxLength = 18;
+      input.placeholder = 'Žaidėjas ' + (i+1);
+      input.value = state.names[i] === ('Žaidėjas ' + (i+1)) ? '' : (state.names[i] || '');
+      input.addEventListener('input', () => {
+        state.names[i] = input.value.trim() || ('Žaidėjas ' + (i+1));
+      });
+      row.appendChild(num);
+      row.appendChild(input);
+      wrap.appendChild(row);
+    }
+  }
+
+  $('backToSetup').addEventListener('click', () => showScreen('screen-setup'));
+
+  $('toReveal').addEventListener('click', () => {
+    assignRoles();
+    state.revealIndex = 0;
+    renderRevealScreen();
+    showScreen('screen-reveal');
+  });
+
+  // ---------- WORD DECK (no repeats until pool exhausted) ----------
+  function categoryKey(){
+    return Array.from(state.categories).sort().join('|');
+  }
+
+  function buildDeck(){
+    const pool = [];
+    state.categories.forEach(cat => {
+      WORD_BANK[cat].forEach(pair => pool.push({ word: pair[0], hint: pair[1], cat: cat }));
+    });
+    shuffleArray(pool);
+    state.deck = pool;
+    state.deckIndex = 0;
+    state.deckKey = categoryKey();
+  }
+
+  function drawWordEntry(){
+    const key = categoryKey();
+    if(state.deckKey !== key || !state.deck.length){
+      buildDeck();
+    }
+    if(state.deckIndex >= state.deck.length){
+      const lastWord = state.deck[state.deck.length - 1].word;
+      buildDeck();
+      // avoid drawing the exact same word twice in a row across reshuffles
+      if(state.deck.length > 1 && state.deck[0].word === lastWord){
+        [state.deck[0], state.deck[1]] = [state.deck[1], state.deck[0]];
+      }
+    }
+    return state.deck[state.deckIndex++];
+  }
+
+  // ---------- ROLE ASSIGNMENT ----------
+  function assignRoles(){
+    const entry = drawWordEntry();
+    state.category = entry.cat;
+    state.word = entry.word;
+
+    // fixed, hand-crafted associative hint for this exact word (never the word itself)
+    state.hintWord = entry.hint;
+
+    const idx = Array.from({length: state.players}, (_,i) => i);
+    for(let i = idx.length-1; i>0; i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [idx[i], idx[j]] = [idx[j], idx[i]];
+    }
+    const impostorSet = new Set(idx.slice(0, state.impostors));
+    state.roles = [];
+    for(let i=0;i<state.players;i++){
+      state.roles.push(impostorSet.has(i) ? 'impostor' : 'crew');
+    }
+
+    // random hand-off order — who gets the phone in which sequence
+    const order = Array.from({length: state.players}, (_,i) => i);
+    shuffleArray(order);
+    state.revealOrder = order;
+  }
+
+  // ---------- REVEAL SCREEN ----------
+  function renderProgressDots(){
+    const wrap = $('progressDots');
+    wrap.innerHTML = '';
+    for(let i=0;i<state.players;i++){
+      const d = document.createElement('div');
+      d.className = 'dot' + (i < state.revealIndex ? ' done' : (i === state.revealIndex ? ' current' : ''));
+      wrap.appendChild(d);
+    }
+  }
+
+  function renderRevealScreen(){
+    renderProgressDots();
+    state.revealStage = 'handoff';
+
+    const playerIdx = state.revealOrder[state.revealIndex];
+    const name = state.names[playerIdx];
+    const role = state.roles[playerIdx];
+
+    $('dossier').classList.remove('flipped');
+    $('passName').textContent = 'Telefoną laiko: ' + name;
+    $('passInstr').textContent = 'Patikrinkite, ar tai tinkamas žaidėjas, tada bakstelėkite mygtuką';
+    $('dossierWho').textContent = name;
+
+    const back = $('dossierBack');
+    back.classList.remove('crew','impostor');
+    back.classList.add(role);
+
+    const eyebrow = $('roleEyebrow');
+    const word = $('roleWord');
+    const sub = $('roleSub');
+    eyebrow.classList.remove('crew','impostor');
+    eyebrow.classList.add(role);
+    word.classList.remove('crew','impostor');
+    word.classList.add(role);
+
+    if(role === 'crew'){
+      eyebrow.textContent = 'Komandos narys';
+      word.textContent = state.word.toUpperCase();
+      sub.textContent = 'Tai jūsų slaptas žodis. Užsimenkite apie jį netiesiogiai.';
+    } else {
+      eyebrow.textContent = 'Impostorius';
+      word.textContent = 'JŪS ESATE IMPOSTORIUS';
+      if(state.hintMode === 'word'){
+        sub.textContent = 'Užuomina: „' + state.hintWord + '“ — su tikruoju žodžiu susijęs, bet ne jis pats. Apsimeskite, kad žinote tikslų žodį.';
+      } else if(state.hintMode === 'topic'){
+        sub.textContent = 'Kategorija: ' + state.category + '. Žodžio nežinote — apsimeskite, kad žinote.';
+      } else {
+        sub.textContent = 'Žodžio nežinote. Klausykitės kitų ir apsimeskite, kad žinote.';
+      }
+    }
+
+    const isLast = state.revealIndex === state.players - 1;
+    $('revealHide').textContent = isLast ? 'Paslėpti ir baigti skirstymą →' : 'Paslėpti ir perduoti kitam →';
+
+    $('revealShow').style.display = '';
+    $('revealHide').style.display = 'none';
+  }
+
+  function showRole(){
+    if(state.revealStage === 'shown') return;
+    state.revealStage = 'shown';
+    $('dossier').classList.add('flipped');
+    $('passInstr').textContent = 'Tik jūs turėtumėte matyti šį ekraną dabar';
+    $('revealShow').style.display = 'none';
+    $('revealHide').style.display = '';
+  }
+
+  $('dossier').addEventListener('click', showRole);
+  $('revealShow').addEventListener('click', showRole);
+
+  $('revealHide').addEventListener('click', () => {
+    if(state.revealStage !== 'shown') return;
+    $('dossier').classList.remove('flipped');
+    state.revealStage = 'handoff';
+    // wait for the flip-closed animation before switching to the next player,
+    // so nobody catches a glimpse of the previous word mid-transition
+    setTimeout(() => {
+      if(state.revealIndex < state.players - 1){
+        state.revealIndex++;
+        renderRevealScreen();
+      } else {
+        state.timerSeconds = state.timerMinutes * 60;
+        updateTimerDisplay();
+        showScreen('screen-timer');
+      }
+    }, 560);
+  });
+
+  // ---------- TIMER SCREEN ----------
+  function updateTimerDisplay(){
+    const m = Math.floor(state.timerSeconds/60);
+    const s = state.timerSeconds%60;
+    $('timerDisplay').textContent = String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+    const total = state.timerMinutes*60;
+    const pct = Math.max(0, Math.round((state.timerSeconds/total)*100));
+    $('timerRing').style.setProperty('--pct', pct);
+  }
+
+  $('timerStart').addEventListener('click', () => {
+    if(state.timerRunning){
+      clearInterval(state.timerInterval);
+      state.timerRunning = false;
+      $('timerStart').textContent = 'Tęsti laikmatį';
+      return;
+    }
+    state.timerRunning = true;
+    $('timerStart').textContent = 'Pristabdyti';
+    state.timerInterval = setInterval(() => {
+      state.timerSeconds--;
+      if(state.timerSeconds <= 0){
+        clearInterval(state.timerInterval);
+        state.timerRunning = false;
+        state.timerSeconds = 0;
+        $('timerStart').textContent = 'Laikas baigėsi';
+      }
+      updateTimerDisplay();
+    }, 1000);
+  });
+
+  $('toResults').addEventListener('click', () => {
+    clearInterval(state.timerInterval);
+    state.timerRunning = false;
+    renderResults();
+    showScreen('screen-results');
+  });
+
+  // ---------- RESULTS SCREEN ----------
+  function renderResults(){
+    $('finalWord').textContent = state.word.toUpperCase();
+    const grid = $('resultsGrid');
+    grid.innerHTML = '';
+    for(let i=0;i<state.players;i++){
+      const card = document.createElement('div');
+      card.className = 'rcard';
+      card.tabIndex = 0;
+      const name = document.createElement('div');
+      name.className = 'rname';
+      name.textContent = state.names[i];
+      const role = document.createElement('div');
+      role.className = 'rrole';
+      role.textContent = '••• bakstelėkite';
+      card.appendChild(name);
+      card.appendChild(role);
+      card.addEventListener('click', () => {
+        if(card.classList.contains('revealed')) return;
+        const r = state.roles[i];
+        card.classList.add('revealed', r);
+        role.textContent = r === 'impostor' ? 'Impostorius' : 'Komandos narys';
+      });
+      grid.appendChild(card);
+    }
+  }
+
+  $('newRound').addEventListener('click', () => {
+    assignRoles();
+    state.revealIndex = 0;
+    renderRevealScreen();
+    showScreen('screen-reveal');
+  });
+
+  $('fullReset').addEventListener('click', () => {
+    clearInterval(state.timerInterval);
+    state = {
+      players: 5, impostors: 1, categories: new Set(ALL_CATEGORIES),
+      timerMinutes: 3, hintMode: 'topic', names: [], roles: [], word: "", hintWord: "",
+      category: "", deck: [], deckIndex: 0, deckKey: "",
+      revealOrder: [], revealStage: 'handoff',
+      revealIndex: 0, timerSeconds: 180, timerInterval: null, timerRunning: false
+    };
+    renderHintChips();
+    renderSetup();
+    renderCategoryChips();
+    showScreen('screen-setup');
+  });
+
+  // ---------- INIT ----------
+  renderSetup();
+  renderCategoryChips();
+  renderHintChips();
+})();
+</script>
+</body>
+</html>
