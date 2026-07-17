@@ -1,0 +1,601 @@
+
+<!DOCTYPE html>
+<html lang="lt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>IMPOSTORIUS — Online Byla</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#15151a; --bg-deep:#0e0e11; --surface:#1f1e24; --surface-2:#26252c;
+    --line:#38363f; --ink:#e9e4da; --muted:#928d97;
+    --crimson:#b8433c; --crimson-dim:#7a332f;
+    --teal:#4d7c72; --teal-dim:#365a53; --gold:#c8a45c;
+    --radius:14px;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    margin:0; background:radial-gradient(ellipse at top, #1c1b21 0%, var(--bg-deep) 70%);
+    color:var(--ink); font-family:'IBM Plex Sans', sans-serif;
+    min-height:100vh; display:flex; align-items:center; justify-content:center;
+    padding:20px; overflow-x:hidden;
+  }
+  .stage{
+    width:100%; max-width:480px; min-height:640px; background:var(--surface);
+    border:1px solid var(--line); border-radius:20px; position:relative; overflow:hidden;
+    box-shadow:0 30px 80px -20px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.02) inset;
+    display:flex; flex-direction:column;
+  }
+  .stage::before{
+    content:""; position:absolute; inset:0;
+    background-image:repeating-linear-gradient(0deg, rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px, transparent 1px, transparent 3px);
+    pointer-events:none; opacity:0.5; z-index:0;
+  }
+  .screen{ display:none; flex-direction:column; flex:1; padding:28px 24px 24px; position:relative; z-index:1; }
+  .screen.active{display:flex; animation:fadeIn .35s ease;}
+  @keyframes fadeIn{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+  
+  .masthead{ display:flex; align-items:baseline; justify-content:space-between; border-bottom:1px solid var(--line); padding-bottom:14px; margin-bottom:22px; }
+  .masthead .brand{ font-family:'Fraunces', serif; font-weight:700; font-size:22px; color:var(--ink); }
+  .masthead .brand span{color:var(--crimson);}
+  .case-tag{ font-family:'JetBrains Mono', monospace; font-size:10.5px; letter-spacing:1.5px; color:var(--muted); text-transform:uppercase; }
+  h1.title{ font-family:'Fraunces', serif; font-size:28px; font-weight:600; margin:0 0 6px; }
+  p.sub{ color:var(--muted); font-size:14.5px; line-height:1.5; margin:0 0 24px; }
+  
+  .field{margin-bottom:20px;}
+  .field-label{ display:flex; justify-content:space-between; align-items:center; font-size:13px; font-weight:600; color:var(--ink); margin-bottom:10px; }
+  .stepper{ display:flex; align-items:center; justify-content:space-between; background:var(--surface-2); border:1px solid var(--line); border-radius:12px; padding:6px; }
+  .stepper button{ width:44px; height:44px; border-radius:9px; border:none; background:var(--bg-deep); color:var(--ink); font-size:20px; font-weight:600; cursor:pointer; }
+  .stepper button:disabled{opacity:0.3; cursor:not-allowed;}
+  .stepper .count{ font-family:'JetBrains Mono', monospace; font-size:26px; font-weight:700; min-width:48px; text-align:center; color:var(--gold); }
+  
+  .chip-row{display:flex; flex-wrap:wrap; gap:8px;}
+  .chip{ padding:9px 14px; border-radius:999px; border:1px solid var(--line); background:var(--surface-2); color:var(--muted); font-size:13px; font-weight:500; cursor:pointer; user-select:none;}
+  .chip.on{ border-color:var(--teal); background:rgba(77,124,114,0.18); color:#a9d4c8; }
+  
+  input[type="text"] { width:100%; padding:14px; border-radius:12px; border:1px solid var(--line); background:var(--surface-2); color:var(--ink); font-size:16px; font-family:'IBM Plex Sans', sans-serif; margin-bottom:12px; outline:none; text-transform:uppercase; }
+  input[type="text"]:focus { border-color:var(--gold); }
+
+  .spacer{flex:1;}
+  .btn{ display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:16px; border-radius:12px; border:none; font-family:'IBM Plex Sans', sans-serif; font-size:15px; font-weight:600; cursor:pointer; transition: transform 0.1s; }
+  .btn:active{transform:scale(0.98);}
+  .btn-primary{background:var(--crimson); color:#fff;}
+  .btn-primary:disabled{background:var(--surface-2); color:var(--muted); cursor:not-allowed; transform:none;}
+  .btn-ghost{background:transparent; border:1px solid var(--line); color:var(--ink);}
+  .btn-success{background:var(--teal); color:#fff;}
+  
+  .player-list { background:var(--surface-2); border:1px solid var(--line); border-radius:12px; padding:12px; margin-bottom:20px; min-height:100px; max-height:200px; overflow-y:auto; }
+  .player-item { padding:8px 0; border-bottom:1px solid var(--line); font-size:14px; display:flex; justify-content:space-between; }
+  .player-item:last-child { border-bottom:none; }
+  .host-badge { font-size:10px; background:var(--gold); color:var(--bg-deep); padding:2px 6px; border-radius:4px; font-weight:bold; }
+
+  /* Dossier styling */
+  .dossier{ width:100%; max-width:300px; aspect-ratio:5/6.6; perspective:1400px; margin:0 auto 26px; cursor:pointer;}
+  .dossier-inner{ position:relative; width:100%; height:100%; transform-style:preserve-3d; transition:transform .55s cubic-bezier(.2,.8,.2,1); }
+  .dossier.flipped .dossier-inner{transform:rotateY(180deg);}
+  .dossier-face{ position:absolute; inset:0; border-radius:14px; backface-visibility:hidden; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:22px; border:1px solid var(--line); }
+  .dossier-front{ background:repeating-linear-gradient(135deg, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 2px, transparent 2px, transparent 14px), var(--surface-2); }
+  .dossier-back{ transform:rotateY(180deg); background:var(--bg-deep); }
+  .dossier-back.crew{background:linear-gradient(160deg, #1c2a26, #14201d);}
+  .dossier-back.impostor{background:linear-gradient(160deg, #2a1a19, #201312);}
+  .role-word{ font-family:'Fraunces', serif; font-size:28px; font-weight:700; text-align:center; margin:10px 0; line-height:1.2;}
+  .impostor-text { color: #e3928c; }
+  .crew-text { color: #a9d4c8; }
+
+  .timer-ring{ width:220px; height:220px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:conic-gradient(var(--gold) calc(var(--pct,100)*1%), var(--surface-2) 0); margin:0 auto 28px; transition:background 1s linear; }
+  .timer-ring-inner{ width:186px; height:186px; border-radius:50%; background:var(--surface); display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono', monospace; font-size:40px; font-weight:700; }
+  
+  .vote-grid{ display:flex; flex-direction:column; gap:10px; margin-bottom:20px; }
+  .vote-btn{ padding:16px; border-radius:12px; background:var(--surface-2); border:1px solid var(--line); color:var(--ink); font-size:15px; font-weight:600; cursor:pointer; transition:all 0.15s;}
+  .vote-btn:active{transform:scale(0.98);}
+  .vote-btn.selected{ border-color:var(--gold); background:rgba(200,164,92,0.15); color:var(--gold); }
+  
+  .results-grid{ display:grid; grid-template-columns:repeat(2, 1fr); gap:10px; margin-bottom:18px; }
+  .rcard{ border:1px solid var(--line); border-radius:12px; padding:12px; background:var(--surface-2); min-height:78px; display:flex; flex-direction:column; justify-content:center; }
+  .rcard .rname{font-size:13px; font-weight:600; margin-bottom:4px;}
+  .rcard .rrole{font-family:'JetBrains Mono', monospace; font-size:10.5px; letter-spacing:0.5px; text-transform:uppercase; color:var(--muted);}
+  .rcard.crew{border-color:var(--teal); background:rgba(77,124,114,0.14);}
+  .rcard.crew .rrole{color:#a9d4c8;}
+  .rcard.impostor{border-color:var(--crimson); background:rgba(184,67,60,0.14);}
+  .rcard.impostor .rrole{color:#e3928c;}
+  
+  .winner-banner{ text-align:center; padding:16px; border-radius:12px; margin-bottom:20px; font-family:'Fraunces', serif; font-size:22px; font-weight:700; border:2px solid transparent; }
+  .winner-banner.crew{ border-color:var(--teal); background:rgba(77,124,114,0.15); color:var(--teal); }
+  .winner-banner.impostor{ border-color:var(--crimson); background:rgba(184,67,60,0.15); color:var(--crimson); }
+</style>
+</head>
+<body>
+
+<div class="stage" id="stage">
+
+  <!-- SCREEN 0: INTRO -->
+  <section class="screen active" id="screen-intro">
+    <div class="masthead"><div class="brand">IMPOST<span>OR</span>IUS</div><div class="case-tag">Prisijungimas</div></div>
+    <h1 class="title">Kas tu?</h1>
+    <p class="sub">Įvesk savo vardą ir sukurk arba prisijunk prie kambario.</p>
+    <input type="text" id="playerName" placeholder="TAVO VARDAS" maxlength="12">
+    <div class="spacer"></div>
+    <button class="btn btn-primary" id="btnCreateRoom" style="margin-bottom:12px;">Sukurti naują kambarį</button>
+    <div style="text-align:center; color:var(--muted); margin-bottom:12px; font-size:12px;">ARBA</div>
+    <input type="text" id="roomCodeInput" placeholder="KAMBARIO KODAS (4 RAIDĖS)" maxlength="4">
+    <button class="btn btn-ghost" id="btnJoinRoom">Prisijungti</button>
+  </section>
+
+  <!-- SCREEN 1: LOBBY & SETUP -->
+  <section class="screen" id="screen-lobby">
+    <div class="masthead"><div class="brand">IMPOST<span>OR</span>IUS</div><div class="case-tag" id="lobbyRoomCode">KODAS: ----</div></div>
+    <h1 class="title">Laukiamasis</h1>
+    
+    <div class="player-list" id="lobbyPlayers"></div>
+
+    <div id="hostControls" style="display:none;">
+      <div class="field">
+        <div class="field-label">Impostorių skaičius</div>
+        <div class="stepper">
+          <button id="impMinus">−</button><div class="count" id="impCount">1</div><button id="impPlus">+</button>
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-label">Kategorija</div>
+        <div class="chip-row" id="categoryChips"></div>
+      </div>
+      <div class="field">
+        <div class="field-label">Laikas (min)</div>
+        <div class="stepper">
+          <button id="timeMinus">−</button><div class="count" id="timeCount">3</div><button id="timePlus">+</button>
+        </div>
+      </div>
+      <button class="btn btn-primary" id="btnStartGame">Pradėti žaidimą →</button>
+    </div>
+    
+    <div id="clientWait" style="text-align:center; color:var(--muted); margin-top:20px; font-size:14px;">
+      Laukiama, kol kambario kūrėjas nustatys parametrus ir pradės žaidimą...
+    </div>
+  </section>
+
+  <!-- SCREEN 2: REVEAL -->
+  <section class="screen" id="screen-reveal">
+    <div class="masthead"><div class="brand">IMPOST<span>OR</span>IUS</div><div class="case-tag">Vaidmuo</div></div>
+    <div class="spacer"></div>
+    <div style="text-align:center; margin-bottom:10px; font-size:14px; color:var(--muted);">Įsitikinkite, kad niekas nemato jūsų ekrano.</div>
+    <div class="dossier" id="dossier">
+      <div class="dossier-inner">
+        <div class="dossier-face dossier-front">
+          <div style="font-family:'JetBrains Mono'; color:var(--muted); margin-bottom:10px; border:1px solid var(--line); padding:5px 12px; border-radius:4px; font-size:11px; letter-spacing:3px;">SLAPTA</div>
+          <div style="font-size:13px; color:var(--muted);">Bakstelėkite, kad pamatytumėte savo rolę</div>
+        </div>
+        <div class="dossier-face dossier-back" id="roleBack">
+          <div id="roleEyebrow" style="font-family:'JetBrains Mono'; font-size:12px; letter-spacing:2px; margin-bottom:10px;"></div>
+          <div id="roleWord" class="role-word"></div>
+          <div id="roleHint" style="font-size:13px; text-align:center; color:var(--muted); padding:0 10px;"></div>
+        </div>
+      </div>
+    </div>
+    <div class="spacer"></div>
+    <button class="btn btn-primary" id="btnToTimer" style="display:none;">Visi pasiruošę. Tęsti →</button>
+    <div id="revealWait" style="text-align:center; color:var(--muted); font-size:14px;">Laukiama hosto...</div>
+  </section>
+
+  <!-- SCREEN 3: TIMER -->
+  <section class="screen" id="screen-timer">
+    <div class="masthead"><div class="brand">IMPOST<span>OR</span>IUS</div><div class="case-tag">Apklausa</div></div>
+    <div class="spacer"></div>
+    <div style="text-align:center; font-size:13px; color:var(--muted); margin-bottom:26px;">Aptarkite ir bandykite nustatyti, kas meluoja</div>
+    <div class="timer-ring" id="timerRing" style="--pct:100"><div class="timer-ring-inner" id="timerDisplay">03:00</div></div>
+    <div class="spacer"></div>
+    <button class="btn btn-primary" id="btnStartTimer" style="display:none; margin-bottom:12px;">Pradėti laikmatį</button>
+    <button class="btn btn-ghost" id="btnToVoting" style="display:none;">Eiti prie balsavimo →</button>
+    <div id="timerWait" style="text-align:center; color:var(--muted); font-size:14px; display:none;">Laukiama hosto veiksmų...</div>
+  </section>
+
+  <!-- SCREEN 4: VOTING -->
+  <section class="screen" id="screen-voting">
+    <div class="masthead"><div class="brand">IMPOST<span>OR</span>IUS</div><div class="case-tag">Balsavimas</div></div>
+    <h1 class="title">Kas yra impostorius?</h1>
+    <p class="sub">Pasirinkite vieną įtariamąjį. Kai visi prabalsuos, paaiškės rezultatas.</p>
+    
+    <div class="vote-grid" id="voteGrid"></div>
+    <div class="spacer"></div>
+    
+    <div id="voteStatus" style="text-align:center; color:var(--muted); font-size:14px; margin-bottom:15px;">Balsavo: 0 / 0</div>
+  </section>
+
+  <!-- SCREEN 5: IMPOSTOR GUESS -->
+  <section class="screen" id="screen-guess">
+    <div class="masthead"><div class="brand">IMPOST<span>OR</span>IUS</div><div class="case-tag">Paskutinis šansas</div></div>
+    <h1 class="title">Impostorius sugautas!</h1>
+    <p class="sub" style="font-size:16px;">
+      <strong id="caughtName" style="color:var(--crimson)">Vardas</strong> buvo impostorius. 
+      Dabar jis privalo garsiai atspėti slaptą žodį.
+    </p>
+    <div class="spacer"></div>
+    <div id="guessHostControls" style="display:none;">
+      <div style="text-align:center; color:var(--muted); font-size:14px; margin-bottom:15px;">Hosto patvirtinimas:</div>
+      <button class="btn btn-success" id="btnGuessCorrect" style="margin-bottom:12px;">Žodis atspėtas teisingai</button>
+      <button class="btn btn-primary" id="btnGuessWrong">Neatspėjo</button>
+    </div>
+    <div id="guessWait" style="text-align:center; color:var(--muted); font-size:14px;">Laukiama, kol hostas patvirtins atsakymą...</div>
+  </section>
+
+  <!-- SCREEN 6: RESULTS -->
+  <section class="screen" id="screen-results">
+    <div class="masthead"><div class="brand">IMPOST<span>OR</span>IUS</div><div class="case-tag">Bylos išvados</div></div>
+    <div class="winner-banner" id="winnerBanner"></div>
+    <p id="winReason" style="text-align:center; color:var(--muted); font-size:14px; margin-top:-10px; margin-bottom:20px;"></p>
+
+    <div style="text-align:center; margin-bottom:20px; padding:16px; border:1px solid var(--gold); background:var(--surface-2); border-radius:12px;">
+      <div style="font-family:'JetBrains Mono'; font-size:10.5px; letter-spacing:2px; color:var(--gold); margin-bottom:6px;">SLAPTAS ŽODIS BUVO:</div>
+      <div id="resultWord" style="font-family:'Fraunces'; font-size:24px; font-weight:700;"></div>
+    </div>
+    
+    <div class="results-grid" id="resultsList"></div>
+    
+    <div class="spacer"></div>
+    <button class="btn btn-ghost" id="btnRestart" style="display:none; margin-bottom:12px;">Nauja byla, tie patys žaidėjai</button>
+    <button class="btn btn-ghost" onclick="location.reload()">Atsijungti</button>
+    <div id="resultsWait" style="text-align:center; color:var(--muted); font-size:14px; display:none; margin-top:10px;">Laukiama hosto...</div>
+  </section>
+
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getDatabase, ref, set, get, onValue, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBXeWZeljTjkCOqIpNQTbqFBAfyazOiGXs",
+    authDomain: "imposter-game-2be15.firebaseapp.com",
+    databaseURL: "https://imposter-game-2be15-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "imposter-game-2be15",
+    storageBucket: "imposter-game-2be15.firebasestorage.app",
+    messagingSenderId: "369904698734",
+    appId: "1:369904698734:web:0fb698f403972892fded7f",
+    measurementId: "G-8HG4ZJLH6J"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  const WORD_BANK = {
+    "Maistas ir gėrimai": [["Picka","Krosnis"],["Košė","Pusryčiai"],["Cepelinai","Virimas"],["Kastinys","Duona"],["Šaltibarščiai","Vasara"],["Bulvių plokštainis","Orkaitė"],["Varškės apkepas","Traškumas"],["Kugelis","Šventė"],["Grybų sriuba","Ruduo"],["Vėdarai","Skrandis"],["Skilandis","Rūkykla"],["Šakotis","Vestuvės"],["Spurgos","Aliejus"],["Bandelė","Kepykla"],["Duona","Rugiai"],["Sūris","Fermentas"],["Medus","Bitė"],["Ledai","Vaikai"],["Kava","Rytas"],["Arbata","Puodelis"],["Alus","Apyniai"],["Kisielius","Krakmolas"],["Blynai","Keptuvė"],["Barščiai","Burokėliai"],["Koldūnai","Įdaras"],["Chalva","Sezamas"],["Grietinė","Rūgštumas"],["Sviestas","Riebumas"],["Kiaušinienė","Trynys"],["Omletas","Pienas"],["Makaronai","Italija"],["Ryžiai","Azija"],["Grikiai","Dieta"],["Avižų košė","Sveikata"],["Bulvių košė","Piurė"],["Cukinijos","Daržas"],["Pomidorai","Salotos"],["Agurkai","Raugas"],["Obuoliai","Sodas"],["Kriaušės","Medis"],["Vyšnios","Kauliukas"],["Braškės","Gegužė"],["Mėlynės","Miškas"],["Serbentai","Krūmas"],["Agrastai","Dygliai"],["Slyvos","Rugpjūtis"],["Morkos","Triušis"],["Burokėliai","Raudona"],["Kopūstai","Rauginimas"],["Svogūnai","Ašaros"],["Česnakai","Kvapas"],["Grybai","Rinkimas"],["Silkė","Marinatas"],["Lašiša","Rausva"],["Karpis","Kalėdos"],["Vėžiai","Ežeras"],["Dešra","Grilis"],["Kumpis","Riebalai"],["Lašiniai","Kiaulė"],["Sūrio pyragas","Gimtadienis"],["Vaflis","Cukrus"],["Sausainiai","Arbata"],["Šokoladas","Kakava"],["Saldainiai","Vaikai"],["Uogienė","Stiklainis"],["Marmeladas","Vaisiai"],["Kompotas","Darželis"],["Gira","Duona"],["Midus","Senovė"],["Vynas","Vynuogė"],["Šampanas","Naujieji metai"],["Kefyras","Rūgimas"],["Jogurtas","Bakterijos"],["Varškė","Baltymas"],["Grietinėlė","Plakimas"],["Ropė","Žiema"],["Griežinėlė","Pjaustymas"],["Krapai","Prieskoniai"],["Krienai","Aštrumas"]],
+    "Gyvūnai": [["Vilkas","Miškas"],["Lokys","Urvas"],["Stumbras","Giria"],["Elnias","Ragai"],["Šernas","Purvas"],["Kiškis","Greitis"],["Lapė","Gudrumas"],["Ežys","Spygliai"],["Gandras","Stogas"],["Gulbė","Ežeras"],["Erelis","Dangus"],["Pelėda","Naktis"],["Kregždė","Pavasaris"],["Genys","Medis"],["Voverė","Riešutai"],["Ožka","Pienas"],["Karvė","Ferma"],["Arklys","Balnas"],["Avis","Vilna"],["Višta","Kiaušinis"],["Katė","Ūsai"],["Šuo","Ištikimybė"],["Bitė","Avilys"],["Skruzdėlė","Skruzdėlynas"],["Kurmis","Požemis"],["Barsukas","Ola"],["Ūdra","Upė"],["Bebras","Užtvanka"],["Šeškas","Kvapas"],["Kiaunė","Kailis"],["Zuikis","Baimė"],["Stirna","Šuoliai"],["Briedis","Pelkė"],["Vanagas","Grobis"],["Kranklys","Juoda"],["Varna","Lizdas"],["Žvirblis","Miestas"],["Kielė","Uodega"],["Volungė","Giesmė"],["Pempė","Laukas"],["Antis","Tvenkinys"],["Žąsis","Plunksnos"],["Kalakutas","Šventė"],["Kiaulė","Kiaulidė"],["Ožys","Barzda"],["Triušis","Narvas"],["Žiurkė","Kanalizacija"],["Pelė","Sūris"],["Driežas","Saulė"],["Gyvatė","Nuodai"],["Rupūžė","Karpa"],["Varlė","Kurkimas"],["Vabalas","Sparnai"],["Boružė","Taškeliai"],["Peteliškė","Metamorfozė"],["Uodas","Kraujas"],["Musė","Šiukšlės"],["Voras","Tinklas"],["Kirmėlė","Žemė"],["Meška","Medus"],["Antilopė","Savana"],["Žirafa","Kaklas"],["Dramblys","Straublys"],["Liūtas","Karalius"],["Tigras","Dryžiai"],["Beždžionė","Bananas"],["Papūga","Spalvos"],["Delfinas","Vandenynas"],["Ryklys","Dantys"],["Vėžlys","Kiautas"],["Pingvinas","Ledynas"],["Flamingas","Rausva"]],
+    "Profesijos": [["Gydytojas","Ligoninė"],["Mokytojas","Klasė"],["Inžinierius","Brėžinys"],["Dailidė","Medis"],["Stalius","Baldai"],["Kalvis","Priekalas"],["Siuvėjas","Adata"],["Kirpėjas","Žirklės"],["Virėjas","Restoranas"],["Vairuotojas","Vairas"],["Pilotas","Dangus"],["Ugniagesys","Žarna"],["Policininkas","Antrankiai"],["Kareivis","Uniforma"],["Žvejys","Meškerė"],["Ūkininkas","Traktorius"],["Statybininkas","Šalmas"],["Elektrikas","Laidai"],["Santechnikas","Vamzdis"],["Advokatas","Įstatymas"],["Teisėjas","Plaktukas"],["Aktorius","Scena"],["Muzikantas","Instrumentas"],["Dailininkas","Teptukas"],["Rašytojas","Rašalas"],["Žurnalistas","Naujienos"],["Fotografas","Kamera"],["Architektas","Pastatas"],["Buhalteris","Skaičiai"],["Bankininkas","Pinigai"],["Pardavėjas","Kasa"],["Kasininkas","Čekis"],["Barmenas","Taurė"],["Padavėjas","Padėklas"],["Slaugytoja","Švirkštas"],["Vaistininkas","Tabletės"],["Veterinaras","Gyvūnas"],["Bibliotekininkas","Knyga"],["Sekretorė","Kalendorius"],["Vadybininkas","Susitikimas"],["Programuotojas","Klaviatūra"],["Mokslininkas","Laboratorija"],["Astronautas","Skafandras"],["Jūreivis","Laivas"],["Kapitonas","Vairalazdė"],["Konduktorius","Bilietas"],["Valytoja","Šluota"],["Sodininkas","Gėlynas"],["Miškininkas","Medžiai"],["Mėsininkas","Peilis"],["Kepėjas","Duona"],["Batsiuvys","Batai"],["Auklė","Vaikas"],["Treneris","Švilpukas"],["Gidas","Žemėlapis"],["Skulptorius","Kaltas"],["Fizioterapeutas","Masažas"],["Odontologas","Dantys"],["Chirurgas","Skalpelis"],["Notaras","Antspaudas"],["Redaktorius","Tekstas"],["Vertėjas","Žodynas"]],
+    "Vietos ir pastatai": [["Bažnyčia","Varpas"],["Pilis","Bokštas"],["Turgus","Prekyba"],["Biblioteka","Tyla"],["Mokykla","Skambutis"],["Ligoninė","Balta"],["Stotis","Bilietas"],["Uostas","Laivas"],["Paplūdimys","Smėlis"],["Miškas","Medžiai"],["Kalnas","Viršūnė"],["Ežeras","Žvejyba"],["Upė","Srovė"],["Sodas","Vaisiai"],["Parkas","Suoliukas"],["Muziejus","Eksponatas"],["Teatras","Uždanga"],["Kavinė","Kvapas"],["Restoranas","Meniu"],["Viešbutis","Kambarys"],["Fabrikas","Dūmai"],["Ferma","Gyvuliai"],["Malūnas","Sparnai"],["Pirtis","Garas"],["Kapinės","Kryžius"],["Vienuolynas","Malda"],["Rotušė","Valdžia"],["Aikštė","Fontanas"],["Tiltas","Krantas"],["Bokštas","Aukštis"],["Švyturys","Šviesa"],["Oro uostas","Lėktuvas"],["Zoologijos sodas","Narvas"],["Botanikos sodas","Augalai"],["Stadionas","Minia"],["Baseinas","Chloras"],["Sporto salė","Svarmenys"],["Darželis","Vaikai"],["Universitetas","Paskaita"],["Prekybos centras","Vežimėlis"],["Vaistinė","Tabletės"],["Policijos nuovada","Pareigūnas"],["Priešgaisrinė stotis","Žarna"],["Kino teatras","Popkornas"],["Naktinis klubas","Muzika"],["Sinagoga","Žvaigždė"],["Mečetė","Kupolas"],["Dvaras","Aristokratija"],["Sodyba","Kaimas"],["Karčiama","Alus"],["Etnografinė sodyba","Tradicija"],["Pieninė","Pienas"],["Kalvė","Priekalas"],["Malka sandėlis","Kirvis"],["Bunkeris","Slėptuvė"],["Observatorija","Teleskopas"]],
+    "Buities daiktai": [["Šluota","Dulkės"],["Puodas","Sriuba"],["Keptuvė","Aliejus"],["Šaukštas","Metalas"],["Peilis","Ašmenys"],["Lėkštė","Maistas"],["Taurė","Vynas"],["Lova","Miegas"],["Spinta","Drabužiai"],["Veidrodis","Atspindys"],["Žvakė","Liepsna"],["Laikrodis","Laikas"],["Skėtis","Lietus"],["Kėdė","Sėdėjimas"],["Stalas","Valgymas"],["Pagalvė","Minkšta"],["Antklodė","Šiluma"],["Rankšluostis","Vonia"],["Muilas","Putos"],["Šepetys","Dantys"],["Šakutė","Dantukai"],["Puodukas","Kava"],["Ąsotis","Vanduo"],["Dubuo","Salotos"],["Kibiras","Smėlis"],["Šluostė","Grindys"],["Kilimas","Raštas"],["Užuolaida","Langas"],["Lempa","Elektra"],["Televizorius","Ekranas"],["Šaldytuvas","Šaltis"],["Skalbimo mašina","Purvas"],["Dulkių siurblys","Oras"],["Lygintuvas","Klostės"],["Virdulys","Verdantis"],["Orkaitė","Kepimas"],["Mikrobangė","Greitis"],["Indaplovė","Švara"],["Rakto pakabukas","Saugumas"],["Lagaminas","Kelionė"],["Piniginė","Pinigai"],["Akiniai","Regėjimas"],["Kepurė","Galva"],["Pirštinės","Pirštai"],["Šalikas","Kaklas"],["Diržas","Kelnės"],["Batai","Pėdos"],["Kojinės","Vilna"],["Adata","Dūris"],["Siūlai","Mazgas"],["Žirklės","Kirpimas"],["Vinis","Kalimas"],["Plaktukas","Vinis"],["Atsuktuvas","Varžtas"],["Virvė","Raištis"],["Kopėčios","Aukštis"]],
+    "Sportas ir laisvalaikis": [["Krepšinis","Lankas"],["Futbolas","Vartai"],["Tinklinis","Tinklas"],["Bėgimas","Takelis"],["Plaukimas","Baseinas"],["Slidinėjimas","Sniegas"],["Čiuožimas","Ledas"],["Dviratis","Ratai"],["Boksas","Pirštinės"],["Imtynės","Kilimėlis"],["Šachmatai","Karalius"],["Žvejyba","Meškerė"],["Medžioklė","Šautuvas"],["Turizmas","Kuprinė"],["Joga","Kvėpavimas"],["Tenisas","Raketė"],["Golfas","Lazda"],["Rankinis","Kamuolys"],["Ledo ritulys","Pačiūžos"],["Šuoliai į vandenį","Trampolinas"],["Irklavimas","Valtis"],["Buriavimas","Vėjas"],["Alpinizmas","Virvė"],["Šaudymas iš lanko","Taikinys"],["Dziudo","Kimono"],["Kikboksas","Smūgis"],["Šokiai","Muzika"],["Aerobika","Ritmas"],["Stalo tenisas","Kamuoliukas"],["Badmintonas","Volanas"],["Riedučiai","Ratukai"],["Riedlentė","Trikas"],["Kartingas","Greitis"],["Šaškės","Lenta"],["Bilijardas","Kijis"],["Boulingas","Kėgliai"],["Petankė","Rutuliukai"],["Sunkumų kilnojimas","Štanga"],["Gimnastika","Lankstumas"],["Fechtavimas","Kardas"],["Maratonas","Ištvermė"],["Jodinėjimas","Balnas"],["Burlenčių sportas","Banga"]],
+    "Gamta ir reiškiniai": [["Perkūnija","Dundėjimas"],["Vaivorykštė","Spalvos"],["Sniegas","Balta"],["Lietus","Skėtis"],["Vėjas","Malūnas"],["Rūkas","Neaiškumas"],["Šalna","Ruduo"],["Saulėtekis","Rytas"],["Saulėlydis","Vakaras"],["Uraganas","Griūtis"],["Potvynis","Užliejimas"],["Ugnikalnis","Lava"],["Žemės drebėjimas","Plyšys"],["Ledkalnis","Vandenynas"],["Šaltinis","Gėlas vanduo"],["Kruša","Ledukai"],["Debesys","Dangus"],["Žaibas","Griausmas"],["Audra","Griaustinis"],["Sausra","Trūkumas"],["Speigas","Šaltis"],["Atodrėkis","Tirpimas"],["Rasa","Žolė"],["Šerkšnas","Ledas"],["Pūga","Pusnys"],["Viesulas","Sukūrys"],["Uola","Akmuo"],["Ola","Urvas"],["Slėnis","Kalnai"],["Dykuma","Smėlis"],["Oazė","Palmė"],["Ledynas","Amžinas"],["Geizeris","Karštas vanduo"],["Mėnulis","Naktis"],["Saulė","Šviesa"],["Žvaigždė","Mirgėjimas"],["Kometa","Uodega"],["Vulkanas","Išsiveržimas"],["Kalvos","Reljefas"],["Pelkė","Samanos"],["Balta naktis","Vasara"],["Šiaurės pašvaistė","Dangus"]],
+    "Transportas": [["Automobilis","Ratai"],["Autobusas","Maršrutas"],["Traukinys","Bėgiai"],["Lėktuvas","Sparnai"],["Laivas","Vandenynas"],["Motociklas","Šalmas"],["Traktorius","Laukas"],["Valtis","Irklas"],["Baidarė","Upė"],["Tramvajus","Miestas"],["Troleibusas","Elektra"],["Raketa","Kosmosas"],["Oro balionas","Krepšys"],["Sraigtasparnis","Sraigtas"],["Keltas","Krantas"],["Jachta","Prabanga"],["Povandeninis laivas","Gelmė"],["Metro","Požemis"],["Taksi","Skaitiklis"],["Greitosios pagalbos automobilis","Sirena"],["Gaisrinė mašina","Žarna"],["Sunkvežimis","Krovinys"],["Ekskavatorius","Kaušas"],["Buldozeris","Peilis"],["Kranas","Kablys"],["Rogutės","Sniegas"],["Paspirtukas","Ratukai"],["Rikša","Azija"],["Karieta","Arkliai"],["Vežimas","Šienas"],["Vagonas","Prekės"],["Gondola","Venecija"],["Batutas","Elastinis"],["Furgonas","Dėžės"],["Cisterna","Skystis"]]
+  };
+
+  let myName = "";
+  let myRoom = "";
+  let isHost = false;
+  let roomState = {};
+  let localTimerInterval = null;
+
+  const $ = id => document.getElementById(id);
+  const show = id => { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); $(id).classList.add('active'); };
+
+  function makeCode() {
+    return Math.random().toString(36).substring(2, 6).toUpperCase();
+  }
+
+  $('btnCreateRoom').onclick = async () => {
+    myName = $('playerName').value.trim().toUpperCase();
+    if(!myName) return alert("Įvesk savo vardą");
+    myRoom = makeCode();
+    isHost = true;
+    
+    await set(ref(db, `rooms/${myRoom}`), {
+      status: 'lobby',
+      settings: { impostors: 1, time: 3, category: "Maistas ir gėrimai" },
+      players: { [myName]: { role: '', isHost: true } },
+      votes: {}
+    });
+    
+    setupLobby();
+  };
+
+  $('btnJoinRoom').onclick = async () => {
+    myName = $('playerName').value.trim().toUpperCase();
+    if(!myName) return alert("Įvesk savo vardą");
+    myRoom = $('roomCodeInput').value.trim().toUpperCase();
+    if(myRoom.length !== 4) return alert("Neteisingas kodas");
+    
+    const snap = await get(ref(db, `rooms/${myRoom}`));
+    if(!snap.exists()) return alert("Kambarys nerastas");
+    
+    await update(ref(db, `rooms/${myRoom}/players`), { [myName]: { role: '', isHost: false } });
+    isHost = false;
+    setupLobby();
+  };
+
+  function setupLobby() {
+    show('screen-lobby');
+    $('lobbyRoomCode').textContent = `KODAS: ${myRoom}`;
+    
+    if(isHost) {
+      $('hostControls').style.display = 'block';
+      $('clientWait').style.display = 'none';
+      renderCategories();
+    }
+
+    onValue(ref(db, `rooms/${myRoom}`), (snap) => {
+      roomState = snap.val();
+      if(!roomState) return;
+
+      const playersArr = Object.keys(roomState.players);
+      
+      // Update UI elements based on state
+      if(roomState.status === 'lobby') {
+        $('lobbyPlayers').innerHTML = playersArr.map(p => `<div class="player-item">${p} ${roomState.players[p].isHost ? '<span class="host-badge">HOST</span>' : ''}</div>`).join('');
+        if(isHost) {
+          const maxImp = Math.max(1, Math.min(4, playersArr.length - 1));
+          if(roomState.settings.impostors > maxImp) updateSettings({ impostors: maxImp });
+          $('impCount').textContent = roomState.settings.impostors;
+          $('timeCount').textContent = roomState.settings.time;
+          $('impPlus').disabled = roomState.settings.impostors >= maxImp;
+          $('impMinus').disabled = roomState.settings.impostors <= 1;
+          $('btnStartGame').disabled = playersArr.length < 3;
+          $('btnStartGame').textContent = playersArr.length < 3 ? "Reikia bent 3 žaidėjų" : "Pradėti žaidimą →";
+        }
+        show('screen-lobby');
+      }
+
+      if(roomState.status === 'reveal') showReveal();
+      if(roomState.status === 'timer') showTimer();
+      if(roomState.status === 'voting') showVoting();
+      if(roomState.status === 'impostor_guess') showImpostorGuess();
+      if(roomState.status === 'results') showResults();
+    });
+  }
+
+  $('impMinus').onclick = () => updateSettings({ impostors: Math.max(1, roomState.settings.impostors - 1) });
+  $('impPlus').onclick = () => {
+      const maxImp = Math.max(1, Object.keys(roomState.players).length - 1);
+      updateSettings({ impostors: Math.min(maxImp, roomState.settings.impostors + 1) });
+  };
+  $('timeMinus').onclick = () => updateSettings({ time: Math.max(1, roomState.settings.time - 1) });
+  $('timePlus').onclick = () => updateSettings({ time: Math.min(10, roomState.settings.time + 1) });
+
+  function renderCategories() {
+    $('categoryChips').innerHTML = Object.keys(WORD_BANK).map(cat => 
+      `<div class="chip ${roomState.settings?.category === cat ? 'on' : ''}" onclick="window.setCat('${cat}')">${cat}</div>`
+    ).join('');
+  }
+  window.setCat = cat => updateSettings({ category: cat });
+
+  async function updateSettings(newSettings) {
+    if(!isHost) return;
+    await update(ref(db, `rooms/${myRoom}/settings`), newSettings);
+    renderCategories();
+  }
+
+  $('btnStartGame').onclick = async () => {
+    const players = Object.keys(roomState.players);
+    if(players.length < 3) return;
+    
+    let shuffled = [...players].sort(() => 0.5 - Math.random());
+    let updates = { votes: null, finalReason: null, winner: null, caughtImpostor: null };
+    for(let i=0; i<players.length; i++) {
+      updates[`players/${shuffled[i]}/role`] = (i < roomState.settings.impostors) ? 'impostor' : 'crew';
+    }
+    
+    const catWords = WORD_BANK[roomState.settings.category];
+    const pair = catWords[Math.floor(Math.random() * catWords.length)];
+    updates['word'] = pair[0];
+    updates['hintWord'] = pair[1];
+    updates['status'] = 'reveal';
+    
+    await update(ref(db, `rooms/${myRoom}`), updates);
+  };
+
+  function showReveal() {
+    show('screen-reveal');
+    $('dossier').classList.remove('flipped');
+    const myRole = roomState.players[myName].role;
+    const back = $('roleBack');
+    
+    back.classList.remove('crew', 'impostor');
+    back.classList.add(myRole);
+
+    if(myRole === 'crew') {
+      $('roleEyebrow').textContent = 'KOMANDOS NARYS';
+      $('roleEyebrow').style.color = 'var(--teal)';
+      $('roleWord').textContent = roomState.word.toUpperCase();
+      $('roleWord').className = 'role-word crew-text';
+      $('roleHint').textContent = 'Tai jūsų slaptas žodis. Neminėkite jo tiesiogiai.';
+    } else {
+      $('roleEyebrow').textContent = 'IMPOSTORIUS';
+      $('roleEyebrow').style.color = 'var(--crimson)';
+      $('roleWord').textContent = 'JŪS ESATE IMPOSTORIUS';
+      $('roleWord').className = 'role-word impostor-text';
+      $('roleHint').textContent = `Užuomina: „${roomState.hintWord}“. Klausykitės kitų ir apsimeskite, kad žinote tikrąjį žodį.`;
+    }
+
+    if(isHost) {
+      $('btnToTimer').style.display = 'flex';
+      $('revealWait').style.display = 'none';
+    } else {
+      $('btnToTimer').style.display = 'none';
+      $('revealWait').style.display = 'block';
+    }
+  }
+
+  $('dossier').onclick = () => $('dossier').classList.toggle('flipped');
+  $('btnToTimer').onclick = () => update(ref(db, `rooms/${myRoom}`), { status: 'timer', timerEnd: 0 });
+
+  function showTimer() {
+    show('screen-timer');
+    clearInterval(localTimerInterval);
+    
+    if(isHost) {
+      $('btnStartTimer').style.display = 'flex';
+      $('btnToVoting').style.display = 'flex';
+      $('timerWait').style.display = 'none';
+    } else {
+      $('btnStartTimer').style.display = 'none';
+      $('btnToVoting').style.display = 'none';
+      $('timerWait').style.display = 'block';
+    }
+
+    if(roomState.timerEnd > 0) {
+      $('btnStartTimer').style.display = 'none';
+      $('timerWait').style.display = 'none';
+      localTimerInterval = setInterval(() => {
+        const left = Math.max(0, Math.floor((roomState.timerEnd - Date.now()) / 1000));
+        const m = String(Math.floor(left / 60)).padStart(2, '0');
+        const s = String(left % 60).padStart(2, '0');
+        $('timerDisplay').textContent = `${m}:${s}`;
+        
+        const total = roomState.settings.time * 60;
+        $('timerRing').style.setProperty('--pct', Math.max(0, Math.round((left/total)*100)));
+        
+        if(left <= 0) {
+            clearInterval(localTimerInterval);
+            if(isHost) $('btnStartTimer').textContent = "Laikas baigėsi";
+        }
+      }, 1000);
+    } else {
+      $('timerDisplay').textContent = String(roomState.settings.time).padStart(2,'0') + ':00';
+      $('timerRing').style.setProperty('--pct', 100);
+    }
+  }
+
+  $('btnStartTimer').onclick = () => {
+    const endMs = Date.now() + (roomState.settings.time * 60000);
+    update(ref(db, `rooms/${myRoom}`), { timerEnd: endMs });
+  };
+  
+  $('btnToVoting').onclick = () => update(ref(db, `rooms/${myRoom}`), { status: 'voting', votes: null });
+
+  // VOTING LOGIC
+  function showVoting() {
+    show('screen-voting');
+    const players = Object.keys(roomState.players);
+    const votes = roomState.votes || {};
+    
+    $('voteStatus').textContent = `Balsavo: ${Object.keys(votes).length} / ${players.length}`;
+    
+    // Render voting grid
+    if(!votes[myName]) {
+      $('voteGrid').innerHTML = players.filter(p => p !== myName).map(p => 
+        `<button class="vote-btn" onclick="window.castVote('${p}')">${p}</button>`
+      ).join('');
+    } else {
+      $('voteGrid').innerHTML = `<div style="text-align:center; padding:20px; color:var(--teal);">Jūsų balsas priimtas. Laukiama kitų.</div>`;
+    }
+
+    // Host checks tally
+    if(isHost && Object.keys(votes).length === players.length) {
+      tallyVotes(votes, players);
+    }
+  }
+
+  window.castVote = (target) => {
+    update(ref(db, `rooms/${myRoom}/votes`), { [myName]: target });
+  };
+
+  function tallyVotes(votes, players) {
+    let counts = {};
+    for(let voter in votes) {
+      let t = votes[voter];
+      counts[t] = (counts[t] || 0) + 1;
+    }
+
+    let maxV = 0;
+    let votedOut = null;
+    let tie = false;
+
+    for(let p in counts) {
+      if(counts[p] > maxV) { maxV = counts[p]; votedOut = p; tie = false; }
+      else if(counts[p] === maxV) { tie = true; }
+    }
+
+    if(tie || roomState.players[votedOut].role !== 'impostor') {
+      // Crew failed
+      update(ref(db, `rooms/${myRoom}`), { 
+        status: 'results', 
+        winner: 'impostor', 
+        finalReason: tie ? 'Balsuojant įvyko lygiosios.' : `Dauguma išbalsavo nekaltą žaidėją (${votedOut}).` 
+      });
+    } else {
+      // Impostor caught
+      update(ref(db, `rooms/${myRoom}`), { 
+        status: 'impostor_guess', 
+        caughtImpostor: votedOut 
+      });
+    }
+  }
+
+  // IMPOSTOR GUESS LOGIC
+  function showImpostorGuess() {
+    show('screen-guess');
+    $('caughtName').textContent = roomState.caughtImpostor;
+    
+    if(isHost) {
+      $('guessHostControls').style.display = 'block';
+      $('guessWait').style.display = 'none';
+    } else {
+      $('guessHostControls').style.display = 'none';
+      $('guessWait').style.display = 'block';
+    }
+  }
+
+  $('btnGuessCorrect').onclick = () => {
+    update(ref(db, `rooms/${myRoom}`), { 
+      status: 'results', winner: 'impostor', 
+      finalReason: 'Impostorius buvo pagautas, bet atspėjo teisingą žodį!' 
+    });
+  };
+
+  $('btnGuessWrong').onclick = () => {
+    update(ref(db, `rooms/${myRoom}`), { 
+      status: 'results', winner: 'crew', 
+      finalReason: 'Impostorius buvo pagautas ir neatspėjo žodžio.' 
+    });
+  };
+
+  // RESULTS LOGIC
+  function showResults() {
+    show('screen-results');
+    clearInterval(localTimerInterval);
+    
+    const banner = $('winnerBanner');
+    if(roomState.winner === 'impostor') {
+      banner.textContent = 'LAIMĖJO IMPOSTORIAI';
+      banner.className = 'winner-banner impostor';
+    } else {
+      banner.textContent = 'LAIMĖJO KOMANDA';
+      banner.className = 'winner-banner crew';
+    }
+    
+    $('winReason').textContent = roomState.finalReason || '';
+    $('resultWord').textContent = roomState.word.toUpperCase();
+    
+    $('resultsList').innerHTML = Object.keys(roomState.players).map(p => {
+      const isImp = roomState.players[p].role === 'impostor';
+      return `<div class="rcard ${isImp ? 'impostor' : 'crew'}">
+        <div class="rname">${p}</div>
+        <div class="rrole">${isImp ? 'IMPOSTORIUS' : 'KOMANDOS NARYS'}</div>
+      </div>`;
+    }).join('');
+
+    if(isHost) {
+        $('btnRestart').style.display = 'flex';
+        $('resultsWait').style.display = 'none';
+    } else {
+        $('btnRestart').style.display = 'none';
+        $('resultsWait').style.display = 'block';
+    }
+  }
+
+  $('btnRestart').onclick = () => update(ref(db, `rooms/${myRoom}`), { status: 'lobby', word: '', hintWord: '', timerEnd: 0, votes: null, caughtImpostor: null });
+
+</script>
+</body>
+</html>
+
