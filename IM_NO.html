@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>BEDRAGER — Online Sak</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#15151a; --bg-deep:#0e0e11; --surface:#1f1e24; --surface-2:#26252c;
+    --line:#38363f; --ink:#e9e4da; --muted:#928d97;
+    --crimson:#b8433c; --crimson-dim:#7a332f;
+    --teal:#4d7c72; --teal-dim:#365a53; --gold:#c8a45c;
+    --radius:14px;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    margin:0; background:radial-gradient(ellipse at top, #1c1b21 0%, var(--bg-deep) 70%);
+    color:var(--ink); font-family:'IBM Plex Sans', sans-serif;
+    min-height:100vh; display:flex; align-items:center; justify-content:center;
+    padding:20px; overflow-x:hidden;
+  }
+  @media (prefers-reduced-motion: reduce){ *{animation-duration:0.001s !important; transition-duration:0.001s !important;} }
+  .stage{
+    width:100%; max-width:480px; min-height:660px; background:var(--surface);
+    border:1px solid var(--line); border-radius:20px; position:relative; overflow:hidden;
+    box-shadow:0 30px 80px -20px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.02) inset;
+    display:flex; flex-direction:column;
+  }
+  .stage::before{
+    content:""; position:absolute; inset:0;
+    background-image:repeating-linear-gradient(0deg, rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px, transparent 1px, transparent 3px);
+    pointer-events:none; opacity:0.5; z-index:0;
+  }
+  .screen{ display:none; flex-direction:column; flex:1; padding:28px 24px 24px; position:relative; z-index:1; }
+  .screen.active{display:flex; animation:fadeIn .35s ease;}
+  @keyframes fadeIn{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+
+  .masthead{ display:flex; align-items:baseline; justify-content:space-between; border-bottom:1px solid var(--line); padding-bottom:14px; margin-bottom:22px; }
+  .masthead .brand{ font-family:'Fraunces', serif; font-weight:700; font-size:22px; color:var(--ink); }
+  .masthead .brand span{color:var(--crimson);}
+  .case-tag{ font-family:'JetBrains Mono', monospace; font-size:10.5px; letter-spacing:1.5px; color:var(--muted); text-transform:uppercase; }
+  h1.title{ font-family:'Fraunces', serif; font-size:26px; font-weight:600; margin:0 0 6px; }
+  p.sub{ color:var(--muted); font-size:14px; line-height:1.5; margin:0 0 22px; }
+
+  .field{margin-bottom:18px;}
+  .field-label{ display:flex; justify-content:space-between; align-items:center; font-size:13px; font-weight:600; color:var(--ink); margin-bottom:9px; }
+  .field-label .hint{ font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--muted); font-weight:400; }
+  .stepper{ display:flex; align-items:center; justify-content:space-between; background:var(--surface-2); border:1px solid var(--line); border-radius:12px; padding:6px; }
+  .stepper button{ width:44px; height:44px; border-radius:9px; border:none; background:var(--bg-deep); color:var(--ink); font-size:20px; font-weight:600; cursor:pointer; }
+  .stepper button:disabled{opacity:0.3; cursor:not-allowed;}
+  .stepper .count{ font-family:'JetBrains Mono', monospace; font-size:24px; font-weight:700; min-width:44px; text-align:center; color:var(--gold); }
+
+  .chip-row{display:flex; flex-wrap:wrap; gap:8px;}
+  .chip{ padding:9px 14px; border-radius:999px; border:1px solid var(--line); background:var(--surface-2); color:var(--muted); font-size:12.5px; font-weight:500; cursor:pointer; user-select:none;}
+  .chip.on{ border-color:var(--teal); background:rgba(77,124,114,0.18); color:#a9d4c8; }
+
+  input[type="text"] { width:100%; padding:14px; border-radius:12px; border:1px solid var(--line); background:var(--surface-2); color:var(--ink); font-size:16px; font-family:'IBM Plex Sans', sans-serif; margin-bottom:12px; outline:none; text-transform:uppercase; }
+  input[type="text"]:focus { border-color:var(--gold); }
+
+  .spacer{flex:1;}
+  .btn{ display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:16px; border-radius:12px; border:none; font-family:'IBM Plex Sans', sans-serif; font-size:15px; font-weight:600; cursor:pointer; transition: transform 0.1s; }
+  .btn:active{transform:scale(0.98);}
+  .btn-primary{background:var(--crimson); color:#fff;}
+  .btn-primary:disabled{background:var(--surface-2); color:var(--muted); cursor:not-allowed; transform:none;}
+  .btn-ghost{background:transparent; border:1px solid var(--line); color:var(--ink);}
+  .btn-ghost:disabled{opacity:.4; cursor:not-allowed;}
+  .btn-success{background:var(--teal); color:#fff;}
+  .btn-small{padding:11px; font-size:13.5px;}
+
+  .error-line{ color:#e3928c; font-size:12.5px; margin:-4px 0 10px; min-height:16px; text-align:center; }
+
+  .player-list { background:var(--surface-2); border:1px solid var(--line); border-radius:12px; padding:12px; margin-bottom:16px; min-height:100px; max-height:200px; overflow-y:auto; }
+  .player-item { padding:8px 0; border-bottom:1px solid var(--line); font-size:14px; display:flex; justify-content:space-between; align-items:center; }
+  .player-item:last-child { border-bottom:none; }
+  .player-item.eliminated{ opacity:.45; text-decoration:line-through; }
+  .host-badge { font-size:10px; background:var(--gold); color:var(--bg-deep); padding:2px 6px; border-radius:4px; font-weight:bold; }
+
+  .dossier{ width:100%; max-width:300px; aspect-ratio:5/6.6; perspective:1400px; margin:0 auto 26px; cursor:pointer;}
+  .dossier-inner{ position:relative; width:100%; height:100%; transform-style:preserve-3d; transition:transform .55s cubic-bezier(.2,.8,.2,1); }
+  .dossier.flipped .dossier-inner{transform:rotateY(180deg);}
+  .dossier-face{ position:absolute; inset:0; border-radius:14px; backface-visibility:hidden; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:22px; border:1px solid var(--line); }
+  .dossier-front{ background:repeating-linear-gradient(135deg, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 2px, transparent 2px, transparent 14px), var(--surface-2); }
+  .dossier-back{ transform:rotateY(180deg); background:var(--bg-deep); }
+  .dossier-back.crew{background:linear-gradient(160deg, #1c2a26, #14201d);}
+  .dossier-back.impostor{background:linear-gradient(160deg, #2a1a19, #201312);}
+  .role-word{ font-family:'Fraunces', serif; font-size:28px; font-weight:700; text-align:center; margin:10px 0; line-height:1.2;}
+  .impostor-text { color: #e3928c; }
+  .crew-text { color: #a9d4c8; }
+
+  .timer-ring{ width:220px; height:220px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:conic-gradient(var(--gold) calc(var(--pct,100)*1%), var(--surface-2) 0); margin:0 auto 20px; transition:background 1s linear; }
+  .timer-ring-inner{ width:186px; height:186px; border-radius:50%; background:var(--surface); display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono', monospace; font-size:40px; font-weight:700; }
+
+  .round-msg{ text-align:center; font-size:12.5px; color:var(--gold); margin-bottom:10px; min-height:16px; }
+
+  .vote-grid{ display:flex; flex-direction:column; gap:10px; margin-bottom:20px; }
+  .vote-btn{ padding:16px; border-radius:12px; background:var(--surface-2); border:1px solid var(--line); color:var(--ink); font-size:15px; font-weight:600; cursor:pointer; transition:all 0.15s;}
+  .vote-btn:active{transform:scale(0.98);}
+  .vote-btn.selected{ border-color:var(--gold); background:rgba(200,164,92,0.15); color:var(--gold); }
+
+  .results-grid{ display:grid; grid-template-columns:repeat(2, 1fr); gap:10px; margin-bottom:18px; }
+  .rcard{ border:1px solid var(--line); border-radius:12px; padding:12px; background:var(--surface-2); min-height:78px; display:flex; flex-direction:column; justify-content:center; }
+  .rcard .rname{font-size:13px; font-weight:600; margin-bottom:4px;}
+  .rcard .rrole{font-family:'JetBrains Mono', monospace; font-size:10.5px; letter-spacing:0.5px; text-transform:uppercase; color:var(--muted);}
+  .rcard.crew{border-color:var(--teal); background:rgba(77,124,114,0.14);}
+  .rcard.crew .rrole{color:#a9d4c8;}
+  .rcard.impostor{border-color:var(--crimson); background:rgba(184,67,60,0.14);}
+  .rcard.impostor .rrole{color:#e3928c;}
+
+  .winner-banner{ text-align:center; padding:16px; border-radius:12px; margin-bottom:20px; font-family:'Fraunces', serif; font-size:22px; font-weight:700; border:2px solid transparent; }
+  .winner-banner.crew{ border-color:var(--teal); background:rgba(77,124,114,0.15); color:var(--teal); }
+  .winner-banner.impostor{ border-color:var(--crimson); background:rgba(184,67,60,0.15); color:var(--crimson); }
+  ::-webkit-scrollbar{width:6px;}
+  ::-webkit-scrollbar-thumb{background:var(--line); border-radius:3px;}
+</style>
+</head>
+<body>
+
+<div class="stage" id="stage">
+
+  <!-- SCREEN 0: INTRO -->
+  <section class="screen active" id="screen-intro">
+    <div class="masthead"><div class="brand">BEDRAG<span>ER</span></div><div class="case-tag">Logg inn</div></div>
+    <h1 class="title">Hvem er du?</h1>
+    <p class="sub">Skriv inn navnet ditt og opprett eller bli med i et rom.</p>
+    <input type="text" id="playerName" placeholder="DITT NAVN" maxlength="18">
+    <div class="error-line" id="introError"></div>
+    <div class="spacer"></div>
+    <button class="btn btn-primary" id="btnCreateRoom" style="margin-bottom:12px;">Opprett nytt rom</button>
+    <div style="text-align:center; color:var(--muted); margin-bottom:12px; font-size:12px;">ELLER</div>
+    <input type="text" id="roomCodeInput" placeholder="ROMKODE (4 BOKSTAVER)" maxlength="4">
+    <button class="btn btn-ghost" id="btnJoinRoom">Bli med</button>
+  </section>
+
+  <!-- SCREEN 1: LOBBY & SETUP -->
+  <section class="screen" id="screen-lobby">
+    <div class="masthead"><div class="brand">BEDRAG<span>ER</span></div><div class="case-tag" id="lobbyRoomCode">KODE: ----</div></div>
+    <h1 class="title">Lobby</h1>
+
+    <div class="player-list" id="lobbyPlayers"></div>
+
+    <div id="hostControls" style="display:none;">
+      <div class="field">
+        <div class="field-label">Antall Bedragere <span class="hint" id="impHint">1–4</span></div>
+        <div class="stepper">
+          <button id="impMinus">−</button><div class="count" id="impCount">1</div><button id="impPlus">+</button>
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-label">Kategorier <span class="hint">flere tillatt</span></div>
+        <div style="display:flex; gap:8px; margin-bottom:9px;">
+          <button type="button" class="btn btn-ghost btn-small" id="catAll" style="flex:1;">Alle</button>
+          <button type="button" class="btn btn-ghost btn-small" id="catOne" style="flex:1;">Kun én</button>
+        </div>
+        <div class="chip-row" id="categoryChips"></div>
+      </div>
+      <div class="field">
+        <div class="field-label">Tid (min) <span class="hint" id="timeHint">3 min.</span></div>
+        <div class="stepper">
+          <button id="timeMinus">−</button><div class="count" id="timeCount">3</div><button id="timePlus">+</button>
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-label">Bedrager Hint</div>
+        <div class="chip-row" id="hintChips">
+          <div class="chip" data-mode="topic">Kategori</div>
+          <div class="chip" data-mode="word">Relatert ord</div>
+          <div class="chip" data-mode="none">Ingen</div>
+        </div>
+      </div>
+      <button class="btn btn-primary" id="btnStartGame">Start spill →</button>
+    </div>
+
+    <div id="clientWait" style="text-align:center; color:var(--muted); margin-top:20px; font-size:14px;">
+      Venter på at romoppretteren skal angi parametere og starte spillet...
+    </div>
+  </section>
+
+  <!-- SCREEN 2: REVEAL -->
+  <section class="screen" id="screen-reveal">
+    <div class="masthead"><div class="brand">BEDRAG<span>ER</span></div><div class="case-tag">Rolle</div></div>
+    <div class="spacer"></div>
+    <div style="text-align:center; margin-bottom:10px; font-size:14px; color:var(--muted);">Sørg for at ingen ser skjermen din.</div>
+    <div class="dossier" id="dossier">
+      <div class="dossier-inner">
+        <div class="dossier-face dossier-front">
+          <div style="font-family:'JetBrains Mono'; color:var(--muted); margin-bottom:10px; border:1px solid var(--line); padding:5px 12px; border-radius:4px; font-size:11px; letter-spacing:3px;">HEMMELIG</div>
+          <div style="font-size:13px; color:var(--muted);">Trykk for å se rollen din</div>
+        </div>
+        <div class="dossier-face dossier-back" id="roleBack">
+          <div id="roleEyebrow" style="font-family:'JetBrains Mono'; font-size:12px; letter-spacing:2px; margin-bottom:10px;"></div>
+          <div id="roleWord" class="role-word"></div>
+          <div id="roleHint" style="font-size:13px; text-align:center; color:var(--muted); padding:0 10px;"></div>
+        </div>
+      </div>
+    </div>
+    <div class="spacer"></div>
+    <button class="btn btn-primary" id="btnToTimer" style="display:none;">Alle er klare. Fortsett →</button>
+    <div id="revealWait" style="text-align:center; color:var(--muted); font-size:14px;">Venter på verten...</div>
+  </section>
+
+  <!-- SCREEN 3: TIMER -->
+  <section class="screen" id="screen-timer">
+    <div class="masthead"><div class="brand">BEDRAG<span>ER</span></div><div class="case-tag">Diskusjon</div></div>
+    <div class="spacer"></div>
+    <div class="round-msg" id="roundMsg"></div>
+    <div style="text-align:center; font-size:13px; color:var(--muted); margin-bottom:20px;">Diskuter og prøv å finne ut hvem som lyver</div>
+    <div class="timer-ring" id="timerRing" style="--pct:100"><div class="timer-ring-inner" id="timerDisplay">03:00</div></div>
+    <div class="spacer"></div>
+    <button class="btn btn-primary" id="btnStartTimer" style="display:none; margin-bottom:12px;">Start tidtaker</button>
+    <button class="btn btn-ghost" id="btnToVoting" style="display:none;">Gå til avstemning →</button>
+    <div id="timerWait" style="text-align:center; color:var(--muted); font-size:14px; display:none;">Venter på vertens handlinger...</div>
+  </section>
+
+  <!-- SCREEN 4: VOTING -->
+  <section class="screen" id="screen-voting">
+    <div class="masthead"><div class="brand">BEDRAG<span>ER</span></div><div class="case-tag">Avstemning</div></div>
+    <h1 class="title">Hvem er bedrageren?</h1>
+    <p class="sub">Velg en mistenkt. Resultatet vil bli avslørt når alle har stemt.</p>
+    <div class="round-msg" id="voteRoundMsg"></div>
+
+    <div class="vote-grid" id="voteGrid"></div>
+    <div class="spacer"></div>
+
+    <div id="voteStatus" style="text-align:center; color:var(--muted); font-size:14px; margin-bottom:15px;">Stemt: 0 / 0</div>
+  </section>
+
+  <!-- SCREEN 5: IMPOSTOR GUESS -->
+  <section class="screen" id="screen-guess">
+    <div class="masthead"><div class="brand">BEDRAG<span>ER</span></div><div class="case-tag">Siste Sjanse</div></div>
+    <h1 class="title">Bedrageren er fanget!</h1>
+    <p class="sub" style="font-size:16px;">
+      <strong id="caughtName" style="color:var(--crimson)">Navn</strong> var bedrageren.
+      Nå må de gjette det hemmelige ordet høyt.
+    </p>
+    <div class="spacer"></div>
+    <div id="guessHostControls" style="display:none;">
+      <div style="text-align:center; color:var(--muted); font-size:14px; margin-bottom:15px;">Vertens bekreftelse:</div>
+      <button class="btn btn-success" id="btnGuessCorrect" style="margin-bottom:12px;">Ordet er gjettet riktig</button>
+      <button class="btn btn-primary" id="btnGuessWrong">Gjettet feil</button>
+    </div>
+    <div id="guessWait" style="text-align:center; color:var(--muted); font-size:14px;">Venter på at verten skal bekrefte svaret...</div>
+  </section>
+
+  <!-- SCREEN 6: RESULTS -->
+  <section class="screen" id="screen-results">
+    <div class="masthead"><div class="brand">BEDRAG<span>ER</span></div><div class="case-tag">Saksavslutning</div></div>
+    <div class="winner-banner" id="winnerBanner"></div>
+    <p id="winReason" style="text-align:center; color:var(--muted); font-size:14px; margin-top:-10px; margin-bottom:20px;"></p>
+
+    <div style="text-align:center; margin-bottom:20px; padding:16px; border:1px solid var(--gold); background:var(--surface-2); border-radius:12px;">
+      <div style="font-family:'JetBrains Mono'; font-size:10.5px; letter-spacing:2px; color:var(--gold); margin-bottom:6px;">DET HEMMELIGE ORDET VAR:</div>
+      <div id="resultWord" style="font-family:'Fraunces'; font-size:24px; font-weight:700;"></div>
+    </div>
+
+    <div class="results-grid" id="resultsList"></div>
+
+    <div class="spacer"></div>
+    <button class="btn btn-ghost" id="btnRestart" style="display:none; margin-bottom:12px;">Ny sak, samme spillere</button>
+    <button class="btn btn-primary" id="btnEndRoom" style="display:none; margin-bottom:12px; background:var(--crimson-dim);">Avslutt rom (slett)</button>
+    <button class="btn btn-ghost" id="btnLeave">Forlat</button>
+    <div id="resultsWait" style="text-align:center; color:var(--muted); font-size:14px; display:none; margin-top:10px;">Venter på verten...</div>
+  </section>
+
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getDatabase, ref, get, onValue, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBXeWZeljTjkCOqIpNQTbqFBAfyazOiGXs",
+    authDomain: "imposter-game-2be15.firebaseapp.com",
+    databaseURL: "https://imposter-game-2be15-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "imposter-game-2be15",
+    storageBucket: "imposter-game-2be15.firebasestorage.app",
+    messagingSenderId: "369904698734",
+    appId: "1:369904698734:web:0fb698f403972892fded7f",
+    measurementId: "G-8HG4ZJLH6J"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  const WORD_BANK = {
+    "Mat og Drikke": [["Pizza","Ovn"],["Grøt","Frokost"],["Dumplings","Koking"],["Smør","Brød"],["Kald borsjtsj","Sommer"],["Potetpai","Ovn"],["Ostekake","Bursdag"],["Pudding","Høytid"],["Soppsuppe","Høst"],["Pølse","Mage"],["Bacon","Røykeri"],["Kake","Bryllup smuler"],["Smultringer","Olje"],["Bolle","Bakeri"],["Brød","Rug"],["Ost","Gjær"],["Honning","Bie"],["Iskrem","Barn"],["Kaffe","Morgen"],["Te","Kopp"],["Øl","Humle"],["Kissel","Stivelse"],["Pannekaker","Panne"],["Borsjtsj","Rødbeter"],["Ravioli","Fyll"],["Halva","Sesam"],["Rømme","Syrnet"],["Smør","Fett"],["Speilegg","Eggeplomme"],["Omelett","Melk"],["Pasta","Italia"],["Ris","Asia"],["Bokhvete","Diett"],["Havregryn","Helse"],["Potetmos","Puré"],["Squash","Hage"],["Tomater","Salat"],["Agurker","Sylteagurk"],["Epler","Frukthage"],["Pærer","Tre"],["Kirsebær","Stein"],["Jordbær","Mai"],["Blåbær","Skog"],["Rips","Busk"],["Stikkelsbær","Torner"],["Plommer","August"],["Gulrøtter","Kanin"],["Rødbeter","Rød"],["Kål","Suring"],["Løk","Tårer"],["Hvitløk","Lukt"],["Sopp","Sanking"],["Sild","Marinade"],["Laks","Rosa"],["Karpe","Jul"],["Kreps","Innsjø"],["Pølse","Grill"],["Skinke","Fett"],["Bacon","Gris"],["Ostekake","Bursdag"],["Vaffel","Sukker"],["Kjeks","Te"],["Sjokolade","Kakao"],["Godteri","Barn"],["Syltetøy","Krukke"],["Marmelade","Frukt"],["Kompott","Barnehage"],["Kvass","Brød"],["Mjød","Antikken"],["Vin","Drue"],["Champagne","Nyttår"],["Kefir","Fermentering"],["Yoghurt","Bakterier"],["Magerost","Protein"],["Fløte","Pisking"],["Nepe","Vinter"],["Skive","Skjæring"],["Dill","Krydder"],["Pepperrot","Sterkhet"]],
+    "Dyr": [["Ulv","Skog"],["Bjørn","Hule"],["Bison","Skoger"],["Hjort","Gevir"],["Villsvin","Gjørme"],["Hare","Fart"],["Rev","Listig"],["Pinnsvin","Pigger"],["Stork","Tak"],["Svane","Innsjø"],["Ørn","Himmel"],["Ugle","Natt"],["Svale","Vår"],["Hakkespett","Tre"],["Ekorn","Nøtter"],["Geit","Melk"],["Ku","Gård"],["Hest","Sadel"],["Sau","Ull"],["Kylling","Egg"],["Katt","Værhår"],["Hund","Lojalitet"],["Bie","Bikube"],["Maur","Tust"],["Muldvarp","Underjordisk"],["Grevling","Hule"],["Oter","Elv"],["Bever","Demning"],["Ilder","Lukt"],["Mår","Pels"],["Kanin","Frykt"],["Rådyr","Sprang"],["Elg","Sump"],["Hauk","Bytte"],["Ravn","Svart"],["Kråke","Reir"],["Spurv","By"],["Vippestjert","Hale"],["Pirol","Sang"],["Vipe","Felt"],["And","Dam"],["Gås","Fjær"],["Kalkun","Høytid"],["Gris","Svingesti"],["Geit","Skjegg"],["Kanin","Bur"],["Rotte","Kloakk"],["Mus","Ost"],["Øgle","Sol"],["Slange","Gift"],["Padde","Vorte"],["Frosk","Kvekking"],["Bille","Vinger"],["Marihøne","Prikker"],["Sommerfugl","Metamorfose"],["Mygg","Blod"],["Flue","Søppel"],["Edderkopp","Nett"],["Mark","Jord"],["Bjørn","Honning"],["Antilope","Savanne"],["Sjiraff","Hals"],["Elefant","Snabel"],["Løve","Konge"],["Tiger","Striper"],["Ape","Banan"],["Papegøye","Farger"],["Delfin","Hav"],["Hai","Tenner"],["Skilpadde","Skall"],["Pingvin","Isbre"],["Flamingo","Rosa"]],
+    "Yrker": [["Lege","Sykehus"],["Lærer","Klasserom"],["Ingeniør","Tegning"],["Snekker","Tre"],["Møbelsnekker","Møbler"],["Smed","Ambolt"],["Skredder","Nål"],["Frisør","Saks"],["Kokk","Restaurant"],["Sjåfør","Ratt"],["Pilot","Himmel"],["Brannmann","Slange"],["Politi","Håndjern"],["Soldat","Uniform"],["Fisker","Fiskestang"],["Bonde","Traktor"],["Bygningsarbeider","Hjelm"],["Elektriker","Ledninger"],["Rørlegger","Rør"],["Advokat","Lov"],["Dommer","Hammer"],["Skuespiller","Scene"],["Musiker","Instrument"],["Maler","Pensel"],["Forfatter","Blekk"],["Journalist","Nyheter"],["Fotograf","Kamera"],["Arkitekt","Bygning"],["Regnskapsfører","Tall"],["Bankmann","Penger"],["Selger","Kassaapparat"],["Kasserer","Kvittering"],["Bartender","Glass"],["Servitør","Brett"],["Sykepleier","Sprøyte"],["Farmasøyt","Piller"],["Veterinær","Dyr"],["Bibliotekar","Bok"],["Sekretær","Kalender"],["Leder","Møte"],["Programmerer","Tastatur"],["Forsker","Laboratorium"],["Astronaut","Romdrakt"],["Sjømann","Skip"],["Kaptein","Ror"],["Konduktør","Billett"],["Renholder","Kvast"],["Gartner","Blomsterbed"],["Skogvokter","Trær"],["Slakter","Kniv"],["Baker","Brød"],["Skomaker","Sko"],["Barnepike","Barn"],["Trener","Fløyte"],["Guide","Kart"],["Billedhugger","Meisel"],["Fysioterapeut","Massasje"],["Tannlege","Tenner"],["Kirurg","Skalpell"],["Notarius","Stempel"],["Redaktør","Tekst"],["Oversetter","Ordbok"]],
+    "Steder og Bygninger": [["Kirke","Klokke"],["Slott","Tårn"],["Marked","Handel"],["Bibliotek","Stillhet"],["Skole","Klokke"],["Sykehus","Hvit"],["Stasjon","Billett"],["Havn","Skip"],["Strand","Sand"],["Skog","Trær"],["Fjell","Topp"],["Innsjø","Fiske"],["Elv","Strøm"],["Frukthage","Frukt"],["Park","Benk"],["Museum","Utstilling"],["Teater","Teppe"],["Kafé","Lukt"],["Restaurant","Meny"],["Hotell","Rom"],["Fabrikk","Røyk"],["Gård","Husdyr"],["Mølle","Vinger"],["Badstu","Damp"],["Kirkegård","Kors"],["Kloster","Bønn"],["Rådhus","Regjering"],["Torg","Fontene"],["Bro","Kyst"],["Tårn","Høyde"],["Fyr","Lys"],["Flyplass","Fly"],["Dyrehage","Bur"],["Botanisk hage","Planter"],["Stadion","Folkemengde"],["Basseng","Klor"],["Treningssenter","Vekter"],["Barnehage","Barn"],["Universitet","Forelesning"],["Kjøpesenter","Handlevogn"],["Apotek","Piller"],["Politistasjon","Betjent"],["Brannstasjon","Slange"],["Kino","Popcorn"],["Nattklubb","Musikk"],["Synagoge","Stjerne"],["Moské","Kuppel"],["Herregård","Aristokrati"],["Gårdshus","Landsby"],["Kro","Øl"],["Etnografisk gård","Tradisjon"],["Meieri","Melk"],["Smed","Ambolt"],["Vedskjul","Øks"],["Bunker","Gjemmested"],["Observatorium","Teleskop"]],
+    "Husholdningsartikler": [["Kvast","Støv"],["Gryte","Suppe"],["Stekepanne","Olje"],["Skje","Metall"],["Kniv","Blad"],["Tallerken","Mat"],["Glass","Vin"],["Seng","Søvn"],["Garderobe","Klær"],["Speil","Refleksjon"],["Stearinlys","Flamme"],["Klokke","Tid"],["Paraply","Regn"],["Stol","Sitte"],["Bord","Spise"],["Pute","Myk"],["Teppe","Varme"],["Håndkle","Bad"],["Såpe","Skum"],["Børste","Tenner"],["Gaffel","Tenner"],["Kopp","Kaffe"],["Mugge","Vann"],["Skål","Salat"],["Bøtte","Sand"],["Mopp","Gulv"],["Teppe","Mønster"],["Gardin","Vindu"],["Lampe","Elektrisitet"],["TV","Skjerm"],["Kjøleskap","Kald"],["Vaskemaskin","Skitt"],["Støvsuger","Luft"],["Strykejern","Folder"],["Vannkoker","Koking"],["Ovn","Baking"],["Mikrobølgeovn","Fart"],["Oppvaskmaskin","Renslighet"],["Nøkkelring","Sikkerhet"],["Koffert","Reise"],["Lommebok","Penger"],["Briller","Syn"],["Hatt","Hode"],["Hansker","Fingre"],["Skjerf","Hals"],["Belte","Bukser"],["Sko","Føtter"],["Sokker","Ull"],["Nål","Stikk"],["Tråd","Knut"],["Saks","Klipping"],["Spiker","Hamring"],["Hammer","Spiker"],["Skrutrekker","Skrue"],["Tau","Binde"],["Stige","Høyde"]],
+    "Sport og Fritid": [["Basketball","Kurv"],["Fotball","Mål"],["Volleyball","Nett"],["Løping","Bane"],["Svømming","Basseng"],["Skigåing","Snø"],["Skøyter","Is"],["Sykkel","Hjul"],["Boksing","Hansker"],["Bryting","Matte"],["Sjakk","Konge"],["Fiske","Fiskestang"],["Jakt","Rifle"],["Turisme","Ryggsekk"],["Yoga","Pusting"],["Tennis","Racket"],["Golf","Kølle"],["Håndball","Ball"],["Ishockey","Skøyter"],["Stuping","Trampoline"],["Roing","Båt"],["Seiling","Vind"],["Fjellklatring","Tau"],["Bueskyting","Mål"],["Judo","Kimono"],["Kickboksing","Slag"],["Dans","Musikk"],["Aerobic","Rytme"],["Bordtennis","Ping pong ball"],["Badminton","Fjærball"],["Rulleskøyter","Hjul"],["Skateboard","Triks"],["Karting","Fart"],["Dam","Brett"],["Biljard","Kø"],["Bowling","Kjegler"],["Petanque","Kuler"],["Vektløfting","Vektstang"],["Gymnastikk","Fleksibilitet"],["Fekting","Sverd"],["Maraton","Utholdenhet"],["Ridning","Sadel"],["Brettseiling","Bølge"]],
+    "Natur og Fenomener": [["Tordenvær","Brumming"],["Regnbue","Farger"],["Snø","Hvit"],["Regn","Paraply"],["Vind","Mølle"],["Tåke","Usikkerhet"],["Frost","Høst"],["Soloppgang","Morgen"],["Solnedgang","Kveld"],["Orkan","Kollaps"],["Flom","Oversvømmelse"],["Vulkan","Lava"],["Jordskjelv","Sprekk"],["Isfjell","Hav"],["Kilde","Ferskvann"],["Hagl","Isterninger"],["Skyer","Himmel"],["Lyn","Torden"],["Storm","Tordenskrall"],["Tørke","Mangel"],["Kuldegrad","Kald"],["Tine","Smelting"],["Dugg","Gress"],["Rim","Is"],["Snøstorm","Snøfonner"],["Tornado","Virvel"],["Stein","Klippe"],["Hule","Hi"],["Dal","Fjell"],["Ørken","Sand"],["Oase","Palme"],["Isbre","Evig"],["Geysir","Varmt vann"],["Måne","Natt"],["Sol","Lys"],["Stjerne","Blinkende"],["Komet","Hale"],["Vulkan","Utbrudd"],["Åser","Relieff"],["Sump","Mose"],["Hvit natt","Sommer"],["Nordlys","Himmel"]],
+    "Transport": [["Bil","Hjul"],["Buss","Rute"],["Tog","Skinner"],["Fly","Vinger"],["Skip","Hav"],["Motorsykkel","Hjelm"],["Traktor","Felt"],["Båt","Åre"],["Kajakk","Elv"],["Trikk","By"],["Trolleybuss","Elektrisitet"],["Rakett","Verdensrommet"],["Varmluftsballong","Kurv"],["Helikopter","Propell"],["Ferge","Kyst"],["Yacht","Luksus"],["Ubåt","Dybde"],["T-bane","Underjordisk"],["Taxi","Taksameter"],["Ambulanse","Sirener"],["Brannbil","Slange"],["Lastebil","Last"],["Gravemaskin","Skuffe"],["Bulldoser","Blad"],["Kran","Krok"],["Slede","Snø"],["Sparkesykkel","Hjul"],["Riksja","Asia"],["Vogn","Hester"],["Kjerre","Høy"],["Godsvogn","Varer"],["Gondol","Venezia"],["Trampoline","Elastisk"],["Varebil","Bokser"],["Tankskip","Væske"]]
+  };
+  const ALL_CATEGORIES = Object.keys(WORD_BANK);
+
+  const $ = id => document.getElementById(id);
+  const show = id => { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); $(id).classList.add('active'); };
+
+  function shuffleArray(arr){
+    for(let i = arr.length-1; i>0; i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  function genId(){
+    if(window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    return 'p-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,10);
+  }
+
+  const CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+  function genCode(){
+    let c = '';
+    for(let i=0;i<4;i++) c += CODE_ALPHABET[Math.floor(Math.random()*CODE_ALPHABET.length)];
+    return c;
+  }
+
+  async function safeCall(fn, errEl){
+    try{
+      await fn();
+      return true;
+    }catch(e){
+      console.error(e);
+      if(errEl) $(errEl).textContent = 'Feil ved tilkobling til serveren. Sjekk internettforbindelsen og prøv igjen.';
+      else alert('Feil ved tilkobling til serveren. Prøv igjen.');
+      return false;
+    }
+  }
+
+  const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
+
+  async function cleanupStaleRooms(){
+    try{
+      const snap = await get(ref(db, 'roomIndex'));
+      if(!snap.exists()) return;
+      const index = snap.val();
+      const now = Date.now();
+      const staleIds = Object.keys(index).filter(id => (now - (index[id] && index[id].createdAt || 0)) > TWO_HOURS_MS);
+      if(staleIds.length === 0) return;
+      const updates = {};
+      staleIds.forEach(id => {
+        updates[`rooms/${id}`] = null;
+        updates[`roomIndex/${id}`] = null;
+      });
+      await update(ref(db), updates);
+    }catch(e){
+      console.error('Kunne ikke rydde opp i gamle rom:', e);
+    }
+  }
+
+  async function deleteRoom(code){
+    const updates = {};
+    updates[`rooms/${code}`] = null;
+    updates[`roomIndex/${code}`] = null;
+    await update(ref(db), updates);
+  }
+
+  let myId = genId();
+  let myName = "";
+  let myRoom = "";
+  let isHost = false;
+  let roomState = {};
+  let localTimerInterval = null;
+  let roomListenerRef = null;
+
+  let hostDeck = [];
+  let hostDeckIndex = 0;
+  let hostDeckKey = "";
+
+  function buildHostDeck(categories){
+    const pool = [];
+    categories.forEach(cat => {
+      (WORD_BANK[cat] || []).forEach(pair => pool.push({ word: pair[0], hint: pair[1], cat }));
+    });
+    shuffleArray(pool);
+    hostDeck = pool;
+    hostDeckIndex = 0;
+    hostDeckKey = categories.slice().sort().join('|');
+  }
+
+  function drawHostWord(categories){
+    const key = categories.slice().sort().join('|');
+    if(key !== hostDeckKey || hostDeck.length === 0){
+      buildHostDeck(categories);
+    }
+    if(hostDeckIndex >= hostDeck.length){
+      const last = hostDeck[hostDeck.length-1];
+      buildHostDeck(categories);
+      if(hostDeck.length > 1 && hostDeck[0].word === last.word){
+        [hostDeck[0], hostDeck[1]] = [hostDeck[1], hostDeck[0]];
+      }
+    }
+    return hostDeck[hostDeckIndex++];
+  }
+
+  $('btnCreateRoom').onclick = async () => {
+    $('introError').textContent = '';
+    myName = $('playerName').value.trim().toUpperCase();
+    if(!myName) { $('introError').textContent = 'Skriv inn navnet ditt.'; return; }
+
+    isHost = true;
+    let code = '';
+
+    const ok = await safeCall(async () => {
+      await cleanupStaleRooms();
+      for(let attempt=0; attempt<5; attempt++){
+        code = genCode();
+        const snap = await get(ref(db, `rooms/${code}`));
+        if(!snap.exists()) break;
+      }
+      myRoom = code;
+      const createdAt = Date.now();
+
+      const updates = {};
+      updates[`rooms/${myRoom}`] = {
+        createdAt,
+        status: 'lobby',
+        settings: {
+          impostors: 1,
+          time: 3,
+          categories: ALL_CATEGORIES.slice(),
+          hintMode: 'topic'
+        },
+        players: { [myId]: { name: myName, isHost: true, role: '', joinedAt: Date.now() } },
+        eliminated: null,
+        votes: null
+      };
+      updates[`roomIndex/${myRoom}`] = { createdAt };
+
+      await update(ref(db), updates);
+    }, 'introError');
+
+    if(ok) setupLobby();
+  };
+
+  $('btnJoinRoom').onclick = async () => {
+    $('introError').textContent = '';
+    myName = $('playerName').value.trim().toUpperCase();
+    if(!myName) { $('introError').textContent = 'Skriv inn navnet ditt.'; return; }
+
+    const code = $('roomCodeInput').value.trim().toUpperCase();
+    if(code.length !== 4) { $('introError').textContent = 'Ugyldig kode — må være 4 tegn.'; return; }
+
+    isHost = false;
+    myRoom = code;
+
+    try {
+      const snap = await get(ref(db, `rooms/${myRoom}`));
+      if(!snap.exists()){
+        $('introError').textContent = 'Rom ikke funnet. Sjekk koden.';
+        return;
+      }
+      const data = snap.val();
+      if(data.status !== 'lobby'){
+        $('introError').textContent = 'Spillet har allerede startet — kan ikke bli med nå.';
+        return;
+      }
+      const currentPlayers = data.players || {};
+      if(Object.keys(currentPlayers).length >= 10){
+        $('introError').textContent = 'Rommet er fullt (maksimalt 10 spillere).';
+        return;
+      }
+
+      await update(ref(db, `rooms/${myRoom}/players`), {
+        [myId]: { name: myName, isHost: false, role: '', joinedAt: Date.now() }
+      });
+    } catch(e) {
+      console.error(e);
+      $('introError').textContent = 'Feil ved tilkobling til serveren. Sjekk internettforbindelsen og prøv igjen.';
+      return;
+    }
+
+    setupLobby();
+  };
+
+  function renderCategoryChips(selected){
+    const wrap = $('categoryChips');
+    wrap.innerHTML = '';
+    ALL_CATEGORIES.forEach(cat => {
+      const chip = document.createElement('div');
+      chip.className = 'chip' + (selected.includes(cat) ? ' on' : '');
+      chip.textContent = cat;
+      chip.onclick = () => {
+        let cats = roomState.settings.categories.slice();
+        if(cats.includes(cat)){
+          if(cats.length > 1) cats = cats.filter(c => c !== cat);
+        } else {
+          cats.push(cat);
+        }
+        updateSettings({ categories: cats });
+      };
+      wrap.appendChild(chip);
+    });
+  }
+
+  function renderHintChips(mode){
+    document.querySelectorAll('#hintChips .chip').forEach(chip => {
+      chip.classList.toggle('on', chip.dataset.mode === mode);
+      chip.onclick = () => updateSettings({ hintMode: chip.dataset.mode });
+    });
+  }
+
+  function setupLobby() {
+    show('screen-lobby');
+    $('lobbyRoomCode').textContent = `KODE: ${myRoom}`;
+
+    if(isHost){
+      $('hostControls').style.display = 'block';
+      $('clientWait').style.display = 'none';
+    }
+
+    if(roomListenerRef) { }
+    roomListenerRef = ref(db, `rooms/${myRoom}`);
+
+    onValue(roomListenerRef, (snap) => {
+      roomState = snap.val();
+      if(!roomState){
+        alert('Rommet eksisterer ikke lenger.');
+        location.reload();
+        return;
+      }
+
+      const players = roomState.players || {};
+      const playerIds = Object.keys(players);
+
+      if(roomState.status === 'lobby'){
+        $('lobbyPlayers').innerHTML = playerIds.map(id =>
+          `<div class="player-item">${players[id].name} ${players[id].isHost ? '<span class="host-badge">VERT</span>' : ''}</div>`
+        ).join('');
+
+        if(isHost){
+          const maxImp = Math.max(1, Math.min(4, playerIds.length - 1));
+          if(roomState.settings.impostors > maxImp){
+            updateSettings({ impostors: maxImp });
+          }
+          $('impCount').textContent = roomState.settings.impostors;
+          $('impHint').textContent = '1–' + maxImp;
+          $('impPlus').disabled = roomState.settings.impostors >= maxImp;
+          $('impMinus').disabled = roomState.settings.impostors <= 1;
+
+          $('timeCount').textContent = roomState.settings.time;
+          $('timeHint').textContent = roomState.settings.time + ' min.';
+          $('timeMinus').disabled = roomState.settings.time <= 1;
+          $('timePlus').disabled = roomState.settings.time >= 10;
+
+          renderCategoryChips(roomState.settings.categories || []);
+          renderHintChips(roomState.settings.hintMode || 'topic');
+
+          $('btnStartGame').disabled = playerIds.length < 3;
+          $('btnStartGame').textContent = playerIds.length < 3 ? "Trenger minst 3 spillere" : "Start spill →";
+        }
+        show('screen-lobby');
+      }
+
+      if(roomState.status === 'reveal') showReveal();
+      if(roomState.status === 'timer') showTimer();
+      if(roomState.status === 'voting') showVoting();
+      if(roomState.status === 'impostor_guess') showImpostorGuess();
+      if(roomState.status === 'results') showResults();
+    });
+  }
+
+  $('impMinus').onclick = () => updateSettings({ impostors: Math.max(1, roomState.settings.impostors - 1) });
+  $('impPlus').onclick = () => {
+    const maxImp = Math.max(1, Object.keys(roomState.players || {}).length - 1);
+    updateSettings({ impostors: Math.min(maxImp, roomState.settings.impostors + 1) });
+  };
+  $('timeMinus').onclick = () => updateSettings({ time: Math.max(1, roomState.settings.time - 1) });
+  $('timePlus').onclick = () => updateSettings({ time: Math.min(10, roomState.settings.time + 1) });
+
+  $('catAll').onclick = () => updateSettings({ categories: ALL_CATEGORIES.slice() });
+  $('catOne').onclick = () => {
+    const cur = roomState.settings.categories || [];
+    const first = ALL_CATEGORIES.find(c => cur.includes(c)) || ALL_CATEGORIES[0];
+    updateSettings({ categories: [first] });
+  };
+
+  async function updateSettings(newSettings){
+    if(!isHost) return;
+    await safeCall(() => update(ref(db, `rooms/${myRoom}/settings`), newSettings));
+  }
+
+  $('btnStartGame').onclick = async () => {
+    const players = roomState.players || {};
+    const playerIds = Object.keys(players);
+    if(playerIds.length < 3) return;
+
+    const shuffled = shuffleArray(playerIds.slice());
+    const impostorIds = new Set(shuffled.slice(0, roomState.settings.impostors));
+
+    const entry = drawHostWord(roomState.settings.categories);
+
+    const updates = {};
+    playerIds.forEach(id => {
+      updates[`players/${id}/role`] = impostorIds.has(id) ? 'impostor' : 'crew';
+    });
+    updates['word'] = entry.word;
+    updates['hintWord'] = entry.hint;
+    updates['status'] = 'reveal';
+    updates['eliminated'] = null;
+    updates['votes'] = null;
+    updates['caughtImpostor'] = null;
+    updates['finalReason'] = null;
+    updates['winner'] = null;
+    updates['timerEnd'] = 0;
+    updates['roundMessage'] = null;
+
+    await safeCall(() => update(ref(db, `rooms/${myRoom}`), updates));
+  };
+
+  function showReveal(){
+    show('screen-reveal');
+    $('dossier').classList.remove('flipped');
+    const me = (roomState.players || {})[myId];
+    if(!me || !me.role) return;
+    const myRole = me.role;
+    const back = $('roleBack');
+
+    back.classList.remove('crew', 'impostor');
+    back.classList.add(myRole);
+
+    if(myRole === 'crew'){
+      $('roleEyebrow').textContent = 'BESETNINGSMEDLEM';
+      $('roleEyebrow').style.color = 'var(--teal)';
+      $('roleWord').textContent = roomState.word.toUpperCase();
+      $('roleWord').className = 'role-word crew-text';
+      $('roleHint').textContent = 'Dette er ditt hemmelige ord. Ikke nevn det direkte.';
+    } else {
+      $('roleEyebrow').textContent = 'BEDRAGER';
+      $('roleEyebrow').style.color = 'var(--crimson)';
+      $('roleWord').textContent = 'DU ER BEDRAGEREN';
+      $('roleWord').className = 'role-word impostor-text';
+      const mode = roomState.settings.hintMode || 'topic';
+      if(mode === 'word'){
+        $('roleHint').textContent = `Hint: "${roomState.hintWord}" — relatert, men ikke det faktiske ordet. Lat som du vet det.`;
+      } else if(mode === 'topic'){
+        let cat = '';
+        for(const c of Object.keys(WORD_BANK)){
+          if(WORD_BANK[c].some(p => p[0] === roomState.word)) { cat = c; break; }
+        }
+        $('roleHint').textContent = `Kategori: ${cat}. Du vet ikke ordet — lat som du vet det.`;
+      } else {
+        $('roleHint').textContent = 'Du vet ikke ordet. Lytt til andre og lat som du vet det.';
+      }
+    }
+
+    if(isHost){
+      $('btnToTimer').style.display = 'flex';
+      $('revealWait').style.display = 'none';
+    } else {
+      $('btnToTimer').style.display = 'none';
+      $('revealWait').style.display = 'block';
+    }
+  }
+
+  $('dossier').onclick = () => $('dossier').classList.toggle('flipped');
+  $('btnToTimer').onclick = () => safeCall(() => update(ref(db, `rooms/${myRoom}`), { status: 'timer', timerEnd: 0 }));
+
+  function showTimer(){
+    show('screen-timer');
+    clearInterval(localTimerInterval);
+    $('roundMsg').textContent = roomState.roundMessage || '';
+
+    if(isHost){
+      $('btnStartTimer').style.display = 'flex';
+      $('btnToVoting').style.display = 'flex';
+      $('timerWait').style.display = 'none';
+      $('btnStartTimer').textContent = 'Start tidtaker';
+      $('btnStartTimer').disabled = false;
+    } else {
+      $('btnStartTimer').style.display = 'none';
+      $('btnToVoting').style.display = 'none';
+      $('timerWait').style.display = 'block';
+    }
+
+    if(roomState.timerEnd > 0){
+      $('btnStartTimer').style.display = 'none';
+      $('timerWait').style.display = 'none';
+      localTimerInterval = setInterval(() => {
+        const left = Math.max(0, Math.floor((roomState.timerEnd - Date.now()) / 1000));
+        const m = String(Math.floor(left / 60)).padStart(2, '0');
+        const s = String(left % 60).padStart(2, '0');
+        $('timerDisplay').textContent = `${m}:${s}`;
+
+        const total = roomState.settings.time * 60;
+        $('timerRing').style.setProperty('--pct', Math.max(0, Math.round((left/total)*100)));
+
+        if(left <= 0){
+          clearInterval(localTimerInterval);
+        }
+      }, 1000);
+    } else {
+      $('timerDisplay').textContent = String(roomState.settings.time).padStart(2,'0') + ':00';
+      $('timerRing').style.setProperty('--pct', 100);
+    }
+  }
+
+  $('btnStartTimer').onclick = () => {
+    const endMs = Date.now() + (roomState.settings.time * 60000);
+    safeCall(() => update(ref(db, `rooms/${myRoom}`), { timerEnd: endMs }));
+  };
+
+  $('btnToVoting').onclick = () => safeCall(() => update(ref(db, `rooms/${myRoom}`), { status: 'voting', votes: null }));
+
+  function activePlayerIds(){
+    const players = roomState.players || {};
+    const eliminated = roomState.eliminated || {};
+    return Object.keys(players).filter(id => !eliminated[id]);
+  }
+
+  function showVoting(){
+    show('screen-voting');
+    const players = roomState.players || {};
+    const votes = roomState.votes || {};
+    const active = activePlayerIds();
+
+    $('voteRoundMsg').textContent = roomState.roundMessage || '';
+    $('voteStatus').textContent = `Stemt: ${Object.keys(votes).length} / ${active.length}`;
+
+    if(!active.includes(myId)){
+      $('voteGrid').innerHTML = `<div style="text-align:center; padding:20px; color:var(--muted);">Du deltar ikke lenger i denne runden.</div>`;
+    } else if(!votes[myId]){
+      $('voteGrid').innerHTML = active.filter(id => id !== myId).map(id =>
+        `<button class="vote-btn" data-target="${id}">${players[id].name}</button>`
+      ).join('');
+      document.querySelectorAll('#voteGrid .vote-btn').forEach(btn => {
+        btn.onclick = () => safeCall(() => update(ref(db, `rooms/${myRoom}/votes`), { [myId]: btn.dataset.target }));
+      });
+    } else {
+      $('voteGrid').innerHTML = `<div style="text-align:center; padding:20px; color:var(--teal);">Stemmen din er avgitt. Venter på andre.</div>`;
+    }
+
+    if(isHost && Object.keys(votes).length === active.length && active.length > 0){
+      tallyVotes(votes, active);
+    }
+  }
+
+  function tallyVotes(votes, active){
+    const counts = {};
+    for(const voter in votes){
+      const t = votes[voter];
+      counts[t] = (counts[t] || 0) + 1;
+    }
+
+    let maxV = 0, votedOut = null, tie = false;
+    for(const p in counts){
+      if(counts[p] > maxV){ maxV = counts[p]; votedOut = p; tie = false; }
+      else if(counts[p] === maxV){ tie = true; }
+    }
+
+    if(tie || !votedOut){
+      safeCall(() => update(ref(db, `rooms/${myRoom}`), {
+        votes: null,
+        roundMessage: 'Avstemningen endte uavgjort — stem igjen.'
+      }));
+      return;
+    }
+
+    const players = roomState.players || {};
+    if(players[votedOut].role !== 'impostor'){
+      safeCall(() => update(ref(db, `rooms/${myRoom}`), {
+        status: 'results',
+        winner: 'impostor',
+        finalReason: `Flertallet stemte ut en uskyldig spiller (${players[votedOut].name}).`
+      }));
+    } else {
+      safeCall(() => update(ref(db, `rooms/${myRoom}`), {
+        status: 'impostor_guess',
+        caughtImpostor: votedOut
+      }));
+    }
+  }
+
+  function showImpostorGuess(){
+    show('screen-guess');
+    const players = roomState.players || {};
+    $('caughtName').textContent = players[roomState.caughtImpostor] ? players[roomState.caughtImpostor].name : '';
+
+    if(isHost){
+      $('guessHostControls').style.display = 'block';
+      $('guessWait').style.display = 'none';
+    } else {
+      $('guessHostControls').style.display = 'none';
+      $('guessWait').style.display = 'block';
+    }
+  }
+
+  $('btnGuessCorrect').onclick = () => {
+    safeCall(() => update(ref(db, `rooms/${myRoom}`), {
+      status: 'results', winner: 'impostor',
+      finalReason: 'Bedrageren ble fanget, men gjettet riktig ord!'
+    }));
+  };
+
+  $('btnGuessWrong').onclick = () => {
+    const players = roomState.players || {};
+    const eliminated = Object.assign({}, roomState.eliminated || {});
+    eliminated[roomState.caughtImpostor] = true;
+
+    const remainingImpostors = Object.keys(players).filter(id => players[id].role === 'impostor' && !eliminated[id]);
+    const remainingCrew = Object.keys(players).filter(id => players[id].role === 'crew' && !eliminated[id]);
+
+    if(remainingImpostors.length === 0){
+      safeCall(() => update(ref(db, `rooms/${myRoom}`), {
+        status: 'results', winner: 'crew', eliminated,
+        finalReason: 'Alle bedragere fanget — mannskapet vinner!'
+      }));
+    } else if(remainingCrew.length <= remainingImpostors.length){
+      safeCall(() => update(ref(db, `rooms/${myRoom}`), {
+        status: 'results', winner: 'impostor', eliminated,
+        finalReason: 'For få spillere igjen til å stemme ut bedragerne — de vinner.'
+      }));
+    } else {
+      safeCall(() => update(ref(db, `rooms/${myRoom}`), {
+        status: 'timer', eliminated, votes: null, caughtImpostor: null, timerEnd: 0,
+        roundMessage: `Bedrageren gjettet feil og er eliminert. Må fortsatt finne ${remainingImpostors.length} bedrager(e).`
+      }));
+    }
+  };
+
+  function showResults(){
+    show('screen-results');
+    clearInterval(localTimerInterval);
+
+    const banner = $('winnerBanner');
+    if(roomState.winner === 'impostor'){
+      banner.textContent = 'BEDRAGERNE VINNER';
+      banner.className = 'winner-banner impostor';
+    } else {
+      banner.textContent = 'MANNSKAPET VINNER';
+      banner.className = 'winner-banner crew';
+    }
+
+    $('winReason').textContent = roomState.finalReason || '';
+    $('resultWord').textContent = (roomState.word || '').toUpperCase();
+
+    const players = roomState.players || {};
+    const eliminated = roomState.eliminated || {};
+    $('resultsList').innerHTML = Object.keys(players).map(id => {
+      const p = players[id];
+      const isImp = p.role === 'impostor';
+      const elimTag = eliminated[id] ? ' (fanget)' : '';
+      return `<div class="rcard ${isImp ? 'impostor' : 'crew'}">
+        <div class="rname">${p.name}${elimTag}</div>
+        <div class="rrole">${isImp ? 'BEDRAGER' : 'BESETNINGSMEDLEM'}</div>
+      </div>`;
+    }).join('');
+
+    if(isHost){
+      $('btnRestart').style.display = 'flex';
+      $('btnEndRoom').style.display = 'flex';
+      $('resultsWait').style.display = 'none';
+    } else {
+      $('btnRestart').style.display = 'none';
+      $('btnEndRoom').style.display = 'none';
+      $('resultsWait').style.display = 'block';
+    }
+  }
+
+  $('btnRestart').onclick = () => {
+    safeCall(() => update(ref(db, `rooms/${myRoom}`), {
+      status: 'lobby', word: null, hintWord: null, timerEnd: 0,
+      votes: null, caughtImpostor: null, eliminated: null,
+      winner: null, finalReason: null, roundMessage: null
+    }));
+  };
+
+  $('btnEndRoom').onclick = async () => {
+    if(!confirm('Slett dette rommet for alle deltakere? Denne handlingen kan ikke angres.')) return;
+    await safeCall(() => deleteRoom(myRoom));
+    location.reload();
+  };
+
+  $('btnLeave').onclick = () => location.reload();
+
+</script>
+</body>
+</html>

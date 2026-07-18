@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>IMPOSTOR — One Phone</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#15151a; --bg-deep:#0e0e11; --surface:#1f1e24; --surface-2:#26252c;
+    --line:#38363f; --ink:#e9e4da; --muted:#928d97;
+    --crimson:#b8433c; --crimson-dim:#7a332f;
+    --teal:#4d7c72; --teal-dim:#365a53; --gold:#c8a45c;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    margin:0; background:radial-gradient(ellipse at top, #1c1b21 0%, var(--bg-deep) 70%);
+    color:var(--ink); font-family:'IBM Plex Sans', sans-serif;
+    min-height:100vh; display:flex; align-items:center; justify-content:center;
+    padding:20px; overflow-x:hidden;
+  }
+  .stage{
+    width:100%; max-width:480px; min-height:660px; background:var(--surface);
+    border:1px solid var(--line); border-radius:20px; position:relative; overflow:hidden;
+    box-shadow:0 30px 80px -20px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.02) inset;
+    display:flex; flex-direction:column;
+  }
+  .stage::before{
+    content:""; position:absolute; inset:0;
+    background-image:repeating-linear-gradient(0deg, rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px, transparent 1px, transparent 3px);
+    pointer-events:none; opacity:0.5; z-index:0;
+  }
+  .screen{ display:none; flex-direction:column; flex:1; padding:28px 24px 24px; position:relative; z-index:1; }
+  .screen.active{display:flex; animation:fadeIn .35s ease;}
+  @keyframes fadeIn{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+
+  .masthead{ display:flex; align-items:baseline; justify-content:space-between; border-bottom:1px solid var(--line); padding-bottom:14px; margin-bottom:22px; }
+  .masthead .brand{ font-family:'Fraunces', serif; font-weight:700; font-size:22px; color:var(--ink); }
+  .masthead .brand span{color:var(--crimson);}
+  .case-tag{ font-family:'JetBrains Mono', monospace; font-size:10.5px; letter-spacing:1.5px; color:var(--muted); text-transform:uppercase; }
+  h1.title{ font-family:'Fraunces', serif; font-size:26px; font-weight:600; margin:0 0 6px; }
+  p.sub{ color:var(--muted); font-size:14px; line-height:1.5; margin:0 0 22px; }
+
+  .field{margin-bottom:18px;}
+  .field-label{ display:flex; justify-content:space-between; align-items:center; font-size:13px; font-weight:600; color:var(--ink); margin-bottom:9px; }
+  .stepper{ display:flex; align-items:center; justify-content:space-between; background:var(--surface-2); border:1px solid var(--line); border-radius:12px; padding:6px; }
+  .stepper button{ width:44px; height:44px; border-radius:9px; border:none; background:var(--bg-deep); color:var(--ink); font-size:20px; font-weight:600; cursor:pointer; }
+  .stepper button:disabled{opacity:0.3; cursor:not-allowed;}
+  .stepper .count{ font-family:'JetBrains Mono', monospace; font-size:24px; font-weight:700; min-width:44px; text-align:center; color:var(--gold); }
+
+  .chip-row{display:flex; flex-wrap:wrap; gap:8px;}
+  .chip{ padding:9px 14px; border-radius:999px; border:1px solid var(--line); background:var(--surface-2); color:var(--muted); font-size:12.5px; font-weight:500; cursor:pointer; user-select:none;}
+  .chip.on{ border-color:var(--teal); background:rgba(77,124,114,0.18); color:#a9d4c8; }
+
+  .spacer{flex:1;}
+  .btn{ display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:16px; border-radius:12px; border:none; font-family:'IBM Plex Sans', sans-serif; font-size:15px; font-weight:600; cursor:pointer; transition: transform 0.1s; }
+  .btn:active{transform:scale(0.98);}
+  .btn-primary{background:var(--crimson); color:#fff;}
+  .btn-ghost{background:transparent; border:1px solid var(--line); color:var(--ink);}
+  .btn-success{background:var(--teal); color:#fff;}
+  .btn-small{padding:11px; font-size:13.5px;}
+
+  .scroll-list { background:var(--surface-2); border:1px solid var(--line); border-radius:12px; padding:12px; margin-bottom:16px; min-height:100px; max-height:280px; overflow-y:auto; }
+  .name-row { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+  .name-row:last-child { margin-bottom:0; }
+  .name-row .num { font-family:'JetBrains Mono', monospace; color:var(--gold); font-size:12px; font-weight:700; width:22px; }
+  .name-row input { flex:1; background:var(--bg-deep); border:1px solid var(--line); border-radius:8px; color:var(--ink); font-size:14.5px; font-family:'IBM Plex Sans', sans-serif; padding:10px; outline:none; text-transform:uppercase; }
+  .name-row input:focus { border-color:var(--gold); }
+
+  .dossier{ width:100%; max-width:300px; aspect-ratio:5/6.6; perspective:1400px; margin:0 auto 26px; }
+  .dossier-inner{ position:relative; width:100%; height:100%; transform-style:preserve-3d; transition:transform .55s cubic-bezier(.2,.8,.2,1); }
+  .dossier.flipped .dossier-inner{transform:rotateY(180deg);}
+  .dossier-face{ position:absolute; inset:0; border-radius:14px; backface-visibility:hidden; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:22px; border:1px solid var(--line); }
+  .dossier-front{ background:repeating-linear-gradient(135deg, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 2px, transparent 2px, transparent 14px), var(--surface-2); }
+  .dossier-back{ transform:rotateY(180deg); background:var(--bg-deep); }
+  .dossier-back.crew{background:linear-gradient(160deg, #1c2a26, #14201d);}
+  .dossier-back.impostor{background:linear-gradient(160deg, #2a1a19, #201312);}
+  .role-word{ font-family:'Fraunces', serif; font-size:28px; font-weight:700; text-align:center; margin:10px 0; line-height:1.2;}
+  .impostor-text { color: #e3928c; }
+  .crew-text { color: #a9d4c8; }
+
+  .timer-ring{ width:220px; height:220px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:conic-gradient(var(--gold) calc(var(--pct,100)*1%), var(--surface-2) 0); margin:0 auto 20px; transition:background 1s linear; }
+  .timer-ring-inner{ width:186px; height:186px; border-radius:50%; background:var(--surface); display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono', monospace; font-size:40px; font-weight:700; }
+  .round-msg{ text-align:center; font-size:12.5px; color:var(--gold); margin-bottom:10px; min-height:16px; }
+
+  .vote-grid{ display:flex; flex-direction:column; gap:10px; margin-bottom:20px; }
+  .vote-btn{ padding:16px; border-radius:12px; background:var(--surface-2); border:1px solid var(--line); color:var(--ink); font-size:15px; font-weight:600; cursor:pointer; transition:all 0.15s;}
+  .vote-btn:active{transform:scale(0.98);}
+
+  .results-grid{ display:grid; grid-template-columns:repeat(2, 1fr); gap:10px; margin-bottom:18px; }
+  .rcard{ border:1px solid var(--line); border-radius:12px; padding:12px; background:var(--surface-2); min-height:78px; display:flex; flex-direction:column; justify-content:center; }
+  .rcard .rname{font-size:13px; font-weight:600; margin-bottom:4px;}
+  .rcard .rrole{font-family:'JetBrains Mono', monospace; font-size:10.5px; letter-spacing:0.5px; text-transform:uppercase; color:var(--muted);}
+  .rcard.crew{border-color:var(--teal); background:rgba(77,124,114,0.14);}
+  .rcard.crew .rrole{color:#a9d4c8;}
+  .rcard.impostor{border-color:var(--crimson); background:rgba(184,67,60,0.14);}
+  .rcard.impostor .rrole{color:#e3928c;}
+  .winner-banner{ text-align:center; padding:16px; border-radius:12px; margin-bottom:20px; font-family:'Fraunces', serif; font-size:22px; font-weight:700; border:2px solid transparent; }
+  .winner-banner.crew{ border-color:var(--teal); background:rgba(77,124,114,0.15); color:var(--teal); }
+  .winner-banner.impostor{ border-color:var(--crimson); background:rgba(184,67,60,0.15); color:var(--crimson); }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <!-- SCREEN 1: SETUP -->
+  <section class="screen active" id="screen-setup">
+    <div class="masthead"><div class="brand">IMPOST<span>OR</span></div><div class="case-tag">Settings</div></div>
+    <h1 class="title">Case Parameters</h1>
+    
+    <div class="field">
+      <div class="field-label">Number of Players</div>
+      <div class="stepper">
+        <button id="pMinus">−</button><div class="count" id="pCount">5</div><button id="pPlus">+</button>
+      </div>
+    </div>
+    <div class="field">
+      <div class="field-label">Number of Impostors</div>
+      <div class="stepper">
+        <button id="impMinus">−</button><div class="count" id="impCount">1</div><button id="impPlus">+</button>
+      </div>
+    </div>
+    <div class="field">
+      <div class="field-label">Categories</div>
+      <div style="display:flex; gap:8px; margin-bottom:9px;">
+        <button type="button" class="btn btn-ghost btn-small" id="catAll" style="flex:1;">All</button>
+        <button type="button" class="btn btn-ghost btn-small" id="catOne" style="flex:1;">Only one</button>
+      </div>
+      <div class="chip-row" id="categoryChips"></div>
+    </div>
+    <div class="field">
+      <div class="field-label">Time (min)</div>
+      <div class="stepper">
+        <button id="timeMinus">−</button><div class="count" id="timeCount">3</div><button id="timePlus">+</button>
+      </div>
+    </div>
+    <div class="field">
+      <div class="field-label">Impostor Hint</div>
+      <div class="chip-row" id="hintChips">
+        <div class="chip" data-mode="topic">Category</div>
+        <div class="chip" data-mode="word">Related word</div>
+        <div class="chip" data-mode="none">None</div>
+      </div>
+    </div>
+    <div class="spacer"></div>
+    <button class="btn btn-primary" id="btnToNames">Continue →</button>
+  </section>
+
+  <!-- SCREEN 2: NAMES -->
+  <section class="screen" id="screen-names">
+    <div class="masthead"><div class="brand">IMPOST<span>OR</span></div><div class="case-tag">Players</div></div>
+    <h1 class="title">Enter Names</h1>
+    <p class="sub">Each suspect must have a name.</p>
+    <div class="scroll-list" id="nameList"></div>
+    <div class="spacer"></div>
+    <button class="btn btn-primary" id="btnStartDistribution">Start distribution →</button>
+    <button class="btn btn-ghost" onclick="show('screen-setup')" style="margin-top:10px;">Back</button>
+  </section>
+
+  <!-- SCREEN 3: REVEAL -->
+  <section class="screen" id="screen-reveal">
+    <div class="masthead"><div class="brand">IMPOST<span>OR</span></div><div class="case-tag">Role Assignment</div></div>
+    <div class="spacer"></div>
+    <div style="text-align:center; margin-bottom:10px; font-size:16px; font-weight:600;" id="passName">Hand phone to: TOMAS</div>
+    <div style="text-align:center; margin-bottom:20px; font-size:13px; color:var(--muted);" id="passInstr">Only you should see this screen.</div>
+    
+    <div class="dossier" id="dossier">
+      <div class="dossier-inner">
+        <div class="dossier-face dossier-front">
+          <div style="font-family:'JetBrains Mono'; color:var(--muted); margin-bottom:10px; border:1px solid var(--line); padding:5px 12px; border-radius:4px; font-size:11px; letter-spacing:3px;">SECRET</div>
+          <div style="font-size:13px; color:var(--muted);">Role hidden</div>
+        </div>
+        <div class="dossier-face dossier-back" id="roleBack">
+          <div id="roleEyebrow" style="font-family:'JetBrains Mono'; font-size:12px; letter-spacing:2px; margin-bottom:10px;"></div>
+          <div id="roleWord" class="role-word"></div>
+          <div id="roleHint" style="font-size:13px; text-align:center; color:var(--muted); padding:0 10px;"></div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="spacer"></div>
+    <button class="btn btn-primary" id="btnRevealAction">I am TOMAS. Show role</button>
+  </section>
+
+  <!-- SCREEN 4: TIMER -->
+  <section class="screen" id="screen-timer">
+    <div class="masthead"><div class="brand">IMPOST<span>OR</span></div><div class="case-tag">Discussion</div></div>
+    <div class="spacer"></div>
+    <div class="round-msg" id="roundMsg"></div>
+    <div style="text-align:center; font-size:13px; color:var(--muted); margin-bottom:20px;">Discuss and try to find who is lying</div>
+    <div class="timer-ring" id="timerRing" style="--pct:100"><div class="timer-ring-inner" id="timerDisplay">03:00</div></div>
+    <div class="spacer"></div>
+    <button class="btn btn-primary" id="btnStartTimer">Start timer</button>
+    <button class="btn btn-ghost" id="btnToEliminate">Stop and vote live →</button>
+  </section>
+
+  <!-- SCREEN 5: ELIMINATE -->
+  <section class="screen" id="screen-eliminate">
+    <div class="masthead"><div class="brand">IMPOST<span>OR</span></div><div class="case-tag">Live Voting</div></div>
+    <h1 class="title">Voting Result</h1>
+    <p class="sub">Who got the most votes and was eliminated from the group?</p>
+    <div class="vote-grid" id="eliminateGrid"></div>
+  </section>
+
+  <!-- SCREEN 6: GUESS -->
+  <section class="screen" id="screen-guess">
+    <div class="masthead"><div class="brand">IMPOST<span>OR</span></div><div class="case-tag">Last Chance</div></div>
+    <h1 class="title">Impostor caught!</h1>
+    <p class="sub" style="font-size:16px;">
+      <strong id="caughtName" style="color:var(--crimson)">Name</strong> was the impostor.
+      Now they must guess the secret word out loud.
+    </p>
+    <div class="spacer"></div>
+    <div style="text-align:center; color:var(--muted); font-size:14px; margin-bottom:15px;">Did they guess correctly?</div>
+    <button class="btn btn-success" onclick="endGame('impostor_guessed')" style="margin-bottom:12px;">Guessed correctly</button>
+    <button class="btn btn-primary" onclick="handleWrongGuess()">Guessed wrong</button>
+  </section>
+
+  <!-- SCREEN 7: RESULTS -->
+  <section class="screen" id="screen-results">
+    <div class="masthead"><div class="brand">IMPOST<span>OR</span></div><div class="case-tag">Case Conclusion</div></div>
+    <div class="winner-banner" id="winnerBanner"></div>
+    <p id="winReason" style="text-align:center; color:var(--muted); font-size:14px; margin-top:-10px; margin-bottom:20px;"></p>
+
+    <div style="text-align:center; margin-bottom:20px; padding:16px; border:1px solid var(--gold); background:var(--surface-2); border-radius:12px;">
+      <div style="font-family:'JetBrains Mono'; font-size:10.5px; letter-spacing:2px; color:var(--gold); margin-bottom:6px;">THE SECRET WORD WAS:</div>
+      <div id="resultWord" style="font-family:'Fraunces'; font-size:24px; font-weight:700;"></div>
+    </div>
+
+    <div class="results-grid" id="resultsList"></div>
+    <div class="spacer"></div>
+    <button class="btn btn-primary" onclick="resetSamePlayers()" style="margin-bottom:12px;">New case, same players</button>
+    <button class="btn btn-ghost" onclick="window.location.href='index.html'">Back to start</button>
+  </section>
+</div>
+
+<script>
+  const WORD_BANK = {
+    "Food and Drinks": [["Pizza","Oven"],["Porridge","Breakfast"],["Dumplings","Boiling"],["Butter","Bread"],["Cold borscht","Summer"],["Potato pie","Oven"],["Curd bake","Crunch"],["Pudding","Holiday"],["Mushroom soup","Autumn"],["Sausage","Stomach"],["Bacon","Smokehouse"],["Cake","Wedding"],["Donuts","Oil"],["Bun","Bakery"],["Bread","Rye"],["Cheese","Ferment"],["Honey","Bee"],["Ice cream","Children"],["Coffee","Morning"],["Tea","Cup"],["Beer","Hops"],["Kissel","Starch"],["Pancakes","Pan"],["Borscht","Beetroots"],["Ravioli","Filling"],["Halva","Sesame"],["Sour cream","Sourness"],["Butter","Fat"],["Fried eggs","Yolk"],["Omelette","Milk"],["Pasta","Italy"],["Rice","Asia"],["Buckwheat","Diet"],["Oatmeal","Health"],["Mashed potatoes","Puree"],["Zucchini","Garden"],["Tomatoes","Salad"],["Cucumbers","Pickle"],["Apples","Orchard"],["Pears","Tree"],["Cherries","Pit"],["Strawberries","May"],["Blueberries","Forest"],["Currants","Bush"],["Gooseberries","Thorns"],["Plums","August"],["Carrots","Rabbit"],["Beetroots","Red"],["Cabbage","Pickling"],["Onions","Tears"],["Garlic","Smell"],["Mushrooms","Gathering"],["Herring","Marinade"],["Salmon","Pink"],["Carp","Christmas"],["Crayfish","Lake"],["Sausage","Grill"],["Ham","Fat"],["Bacon","Pig"],["Cheesecake","Birthday"],["Waffle","Sugar"],["Cookies","Tea"],["Chocolate","Cocoa"],["Candy","Children"],["Jam","Jar"],["Marmalade","Fruit"],["Compote","Kindergarten"],["Kvass","Bread"],["Mead","Antiquity"],["Wine","Grape"],["Champagne","New Year"],["Kefir","Fermentation"],["Yogurt","Bacteria"],["Curd","Protein"],["Cream","Whipping"],["Turnip","Winter"],["Slice","Cutting"],["Dill","Spices"],["Horseradish","Spiciness"]],
+    "Animals": [["Wolf","Forest"],["Bear","Cave"],["Bison","Woods"],["Deer","Antlers"],["Boar","Mud"],["Hare","Speed"],["Fox","Cunning"],["Hedgehog","Spikes"],["Stork","Roof"],["Swan","Lake"],["Eagle","Sky"],["Owl","Night"],["Swallow","Spring"],["Woodpecker","Tree"],["Squirrel","Nuts"],["Goat","Milk"],["Cow","Farm"],["Horse","Saddle"],["Sheep","Wool"],["Chicken","Egg"],["Cat","Whiskers"],["Dog","Loyalty"],["Bee","Hive"],["Ant","Anthill"],["Mole","Underground"],["Badger","Den"],["Otter","River"],["Beaver","Dam"],["Ferret","Smell"],["Marten","Fur"],["Bunny","Fear"],["Roe deer","Leaps"],["Moose","Swamp"],["Hawk","Prey"],["Raven","Black"],["Crow","Nest"],["Sparrow","City"],["Wagtail","Tail"],["Oriole","Song"],["Lapwing","Field"],["Duck","Pond"],["Goose","Feathers"],["Turkey","Holiday"],["Pig","Pigsty"],["Goat","Beard"],["Rabbit","Cage"],["Rat","Sewer"],["Mouse","Cheese"],["Lizard","Sun"],["Snake","Poison"],["Toad","Wart"],["Frog","Croaking"],["Beetle","Wings"],["Ladybug","Spots"],["Butterfly","Metamorphosis"],["Mosquito","Blood"],["Fly","Garbage"],["Spider","Web"],["Worm","Earth"],["Bear","Honey"],["Antelope","Savanna"],["Giraffe","Neck"],["Elephant","Trunk"],["Lion","King"],["Tiger","Stripes"],["Monkey","Banana"],["Parrot","Colors"],["Dolphin","Ocean"],["Shark","Teeth"],["Turtle","Shell"],["Penguin","Glacier"],["Flamingo","Pink"]],
+    "Professions": [["Doctor","Hospital"],["Teacher","Classroom"],["Engineer","Blueprint"],["Carpenter","Wood"],["Joiner","Furniture"],["Blacksmith","Anvil"],["Tailor","Needle"],["Hairdresser","Scissors"],["Chef","Restaurant"],["Driver","Steering wheel"],["Pilot","Sky"],["Firefighter","Hose"],["Police officer","Handcuffs"],["Soldier","Uniform"],["Fisherman","Fishing rod"],["Farmer","Tractor"],["Builder","Helmet"],["Electrician","Wires"],["Plumber","Pipe"],["Lawyer","Law"],["Judge","Hammer"],["Actor","Stage"],["Musician","Instrument"],["Painter","Brush"],["Writer","Ink"],["Journalist","News"],["Photographer","Camera"],["Architect","Building"],["Accountant","Numbers"],["Banker","Money"],["Seller","Cash register"],["Cashier","Receipt"],["Bartender","Glass"],["Waiter","Tray"],["Nurse","Syringe"],["Pharmacist","Pills"],["Veterinarian","Animal"],["Librarian","Book"],["Secretary","Calendar"],["Manager","Meeting"],["Programmer","Keyboard"],["Scientist","Laboratory"],["Astronaut","Spacesuit"],["Sailor","Ship"],["Captain","Helm"],["Conductor","Ticket"],["Cleaner","Broom"],["Gardener","Flowerbed"],["Forester","Trees"],["Butcher","Knife"],["Baker","Bread"],["Shoemaker","Shoes"],["Nanny","Child"],["Coach","Whistle"],["Guide","Map"],["Sculptor","Chisel"],["Physiotherapist","Massage"],["Dentist","Teeth"],["Surgeon","Scalpel"],["Notary","Stamp"],["Editor","Text"],["Translator","Dictionary"]],
+    "Places and Buildings": [["Church","Bell"],["Castle","Tower"],["Market","Trade"],["Library","Silence"],["School","Bell"],["Hospital","White"],["Station","Ticket"],["Port","Ship"],["Beach","Sand"],["Forest","Trees"],["Mountain","Peak"],["Lake","Fishing"],["River","Current"],["Orchard","Fruit"],["Park","Bench"],["Museum","Exhibit"],["Theater","Curtain"],["Cafe","Smell"],["Restaurant","Menu"],["Hotel","Room"],["Factory","Smoke"],["Farm","Livestock"],["Mill","Wings"],["Sauna","Steam"],["Cemetery","Cross"],["Monastery","Prayer"],["Town hall","Government"],["Square","Fountain"],["Bridge","Shore"],["Tower","Height"],["Lighthouse","Light"],["Airport","Airplane"],["Zoo","Cage"],["Botanical garden","Plants"],["Stadium","Crowd"],["Pool","Chlorine"],["Gym","Weights"],["Kindergarten","Children"],["University","Lecture"],["Mall","Cart"],["Pharmacy","Pills"],["Police station","Officer"],["Fire station","Hose"],["Cinema","Popcorn"],["Nightclub","Music"],["Synagogue","Star"],["Mosque","Dome"],["Manor","Aristocracy"],["Homestead","Village"],["Tavern","Beer"],["Ethnographic homestead","Tradition"],["Dairy","Milk"],["Smithy","Anvil"],["Woodshed","Axe"],["Bunker","Hideout"],["Observatory","Telescope"]],
+    "Household Items": [["Broom","Dust"],["Pot","Soup"],["Pan","Oil"],["Spoon","Metal"],["Knife","Blade"],["Plate","Food"],["Glass","Wine"],["Bed","Sleep"],["Wardrobe","Clothes"],["Mirror","Reflection"],["Candle","Flame"],["Clock","Time"],["Umbrella","Rain"],["Chair","Sitting"],["Table","Eating"],["Pillow","Soft"],["Blanket","Warmth"],["Towel","Bath"],["Soap","Foam"],["Brush","Teeth"],["Fork","Prongs"],["Mug","Coffee"],["Jug","Water"],["Bowl","Salad"],["Bucket","Sand"],["Mop","Floor"],["Carpet","Pattern"],["Curtain","Window"],["Lamp","Electricity"],["Television","Screen"],["Refrigerator","Cold"],["Washing machine","Dirt"],["Vacuum cleaner","Air"],["Iron","Folds"],["Kettle","Boiling"],["Oven","Baking"],["Microwave","Speed"],["Dishwasher","Cleanliness"],["Keychain","Security"],["Suitcase","Travel"],["Wallet","Money"],["Glasses","Vision"],["Hat","Head"],["Gloves","Fingers"],["Scarf","Neck"],["Belt","Pants"],["Shoes","Feet"],["Socks","Wool"],["Needle","Stitch"],["Thread","Knot"],["Scissors","Cutting"],["Nail","Hammering"],["Hammer","Nail"],["Screwdriver","Screw"],["Rope","Tie"],["Ladder","Height"]],
+    "Sports and Leisure": [["Basketball","Hoop"],["Football","Goal"],["Volleyball","Net"],["Running","Track"],["Swimming","Pool"],["Skiing","Snow"],["Skating","Ice"],["Bicycle","Wheels"],["Boxing","Gloves"],["Wrestling","Mat"],["Chess","King"],["Fishing","Fishing rod"],["Hunting","Rifle"],["Tourism","Backpack"],["Yoga","Breathing"],["Tennis","Racket"],["Golf","Club"],["Handball","Ball"],["Ice hockey","Skates"],["Diving","Trampoline"],["Rowing","Boat"],["Sailing","Wind"],["Mountaineering","Rope"],["Archery","Target"],["Judo","Kimono"],["Kickboxing","Punch"],["Dancing","Music"],["Aerobics","Rhythm"],["Table tennis","Ping pong ball"],["Badminton","Shuttlecock"],["Rollerblading","Wheels"],["Skateboarding","Trick"],["Karting","Speed"],["Checkers","Board"],["Billiards","Cue"],["Bowling","Pins"],["Petanque","Balls"],["Weightlifting","Barbell"],["Gymnastics","Flexibility"],["Fencing","Sword"],["Marathon","Endurance"],["Horse riding","Saddle"],["Windsurfing","Wave"]],
+    "Nature and Phenomena": [["Thunderstorm","Rumbling"],["Rainbow","Colors"],["Snow","White"],["Rain","Umbrella"],["Wind","Mill"],["Fog","Uncertainty"],["Frost","Autumn"],["Sunrise","Morning"],["Sunset","Evening"],["Hurricane","Collapse"],["Flood","Submergence"],["Volcano","Lava"],["Earthquake","Crack"],["Iceberg","Ocean"],["Spring","Fresh water"],["Hail","Ice cubes"],["Clouds","Sky"],["Lightning","Thunder"],["Storm","Thunderclap"],["Drought","Shortage"],["Freeze","Cold"],["Thaw","Melting"],["Dew","Grass"],["Hoarfrost","Ice"],["Blizzard","Snowdrifts"],["Tornado","Vortex"],["Rock","Stone"],["Cave","Den"],["Valley","Mountains"],["Desert","Sand"],["Oasis","Palm"],["Glacier","Eternal"],["Geyser","Hot water"],["Moon","Night"],["Sun","Light"],["Star","Twinkling"],["Comet","Tail"],["Volcano","Eruption"],["Hills","Relief"],["Swamp","Moss"],["White night","Summer"],["Northern lights","Sky"]],
+    "Transport": [["Car","Wheels"],["Bus","Route"],["Train","Rails"],["Airplane","Wings"],["Ship","Ocean"],["Motorcycle","Helmet"],["Tractor","Field"],["Boat","Oar"],["Kayak","River"],["Tram","City"],["Trolleybus","Electricity"],["Rocket","Space"],["Hot air balloon","Basket"],["Helicopter","Propeller"],["Ferry","Shore"],["Yacht","Luxury"],["Submarine","Depth"],["Metro","Underground"],["Taxi","Meter"],["Ambulance","Sirens"],["Fire engine","Hose"],["Truck","Cargo"],["Excavator","Bucket"],["Bulldozer","Blade"],["Crane","Hook"],["Sled","Snow"],["Scooter","Wheels"],["Rickshaw","Asia"],["Carriage","Horses"],["Wagon","Hay"],["Boxcar","Goods"],["Gondola","Venice"],["Trampoline","Elastic"],["Van","Boxes"],["Tanker","Liquid"]]
+  };
+  const ALL_CATEGORIES = Object.keys(WORD_BANK);
+
+  const $ = id => document.getElementById(id);
+  const show = id => { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); $(id).classList.add('active'); };
+  
+  function shuffleArray(arr){
+    for(let i = arr.length-1; i>0; i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  let state = {
+    playersCount: 5, impostorsCount: 1, time: 3,
+    categories: ALL_CATEGORIES.slice(), hintMode: 'topic',
+    names: [], roles: [], eliminated: [],
+    word: '', hintWord: '', category: '',
+    revealOrder: [], revealIndex: 0, revealStage: 'handoff',
+    timerInterval: null, timerSeconds: 0, caughtImpostorIndex: null
+  };
+
+  function clampImpostors(){
+    const maxImp = Math.max(1, Math.min(4, state.playersCount - 1));
+    if(state.impostorsCount > maxImp) state.impostorsCount = maxImp;
+    if(state.impostorsCount < 1) state.impostorsCount = 1;
+    $('impCount').textContent = state.impostorsCount;
+    $('impPlus').disabled = state.impostorsCount >= maxImp;
+    $('impMinus').disabled = state.impostorsCount <= 1;
+  }
+
+  function renderSetup(){
+    $('pCount').textContent = state.playersCount;
+    $('pMinus').disabled = state.playersCount <= 3;
+    $('pPlus').disabled = state.playersCount >= 10;
+    clampImpostors();
+    $('timeCount').textContent = state.time;
+    $('timeMinus').disabled = state.time <= 1;
+    $('timePlus').disabled = state.time >= 10;
+    renderCatChips();
+    renderHintChips();
+  }
+
+  function renderCatChips(){
+    const wrap = $('categoryChips');
+    wrap.innerHTML = '';
+    ALL_CATEGORIES.forEach(cat => {
+      const chip = document.createElement('div');
+      chip.className = 'chip' + (state.categories.includes(cat) ? ' on' : '');
+      chip.textContent = cat;
+      chip.onclick = () => {
+        if(state.categories.includes(cat)){
+          if(state.categories.length > 1) state.categories = state.categories.filter(c => c !== cat);
+        } else {
+          state.categories.push(cat);
+        }
+        renderCatChips();
+      };
+      wrap.appendChild(chip);
+    });
+  }
+
+  function renderHintChips(){
+    document.querySelectorAll('#hintChips .chip').forEach(chip => {
+      chip.classList.toggle('on', chip.dataset.mode === state.hintMode);
+      chip.onclick = () => { state.hintMode = chip.dataset.mode; renderHintChips(); };
+    });
+  }
+
+  $('pMinus').onclick = () => { if(state.playersCount>3){ state.playersCount--; renderSetup(); }};
+  $('pPlus').onclick = () => { if(state.playersCount<10){ state.playersCount++; renderSetup(); }};
+  $('impMinus').onclick = () => { if(state.impostorsCount>1){ state.impostorsCount--; renderSetup(); }};
+  $('impPlus').onclick = () => { const maxImp = Math.min(4, state.playersCount-1); if(state.impostorsCount<maxImp){ state.impostorsCount++; renderSetup(); }};
+  $('timeMinus').onclick = () => { if(state.time>1){ state.time--; renderSetup(); }};
+  $('timePlus').onclick = () => { if(state.time<10){ state.time++; renderSetup(); }};
+
+  $('catAll').onclick = () => { state.categories = ALL_CATEGORIES.slice(); renderCatChips(); };
+  $('catOne').onclick = () => { 
+    const first = ALL_CATEGORIES.find(c => state.categories.includes(c)) || ALL_CATEGORIES[0];
+    state.categories = [first]; 
+    renderCatChips(); 
+  };
+
+  $('btnToNames').onclick = () => {
+    const list = $('nameList');
+    list.innerHTML = '';
+    for(let i=0; i<state.playersCount; i++){
+      if(!state.names[i]) state.names[i] = `Player ${i+1}`;
+      list.innerHTML += `<div class="name-row"><div class="num">${String(i+1).padStart(2,'0')}</div><input type="text" id="pName${i}" value="${state.names[i]}"></div>`;
+    }
+    show('screen-names');
+  };
+
+  $('btnStartDistribution').onclick = () => {
+    for(let i=0; i<state.playersCount; i++) {
+      state.names[i] = $(`pName${i}`).value.trim() || `Player ${i+1}`;
+    }
+    
+    const indices = Array.from({length: state.playersCount}, (_,i) => i);
+    shuffleArray(indices);
+    const impSet = new Set(indices.slice(0, state.impostorsCount));
+    state.roles = indices.map((_, i) => impSet.has(i) ? 'impostor' : 'crew');
+    state.eliminated = Array(state.playersCount).fill(false);
+    
+    const cat = state.categories[Math.floor(Math.random() * state.categories.length)];
+    const pair = WORD_BANK[cat][Math.floor(Math.random() * WORD_BANK[cat].length)];
+    state.category = cat;
+    state.word = pair[0];
+    state.hintWord = pair[1];
+
+    state.revealOrder = Array.from({length: state.playersCount}, (_,i) => i);
+    shuffleArray(state.revealOrder);
+    state.revealIndex = 0;
+    state.revealStage = 'handoff';
+
+    renderRevealStep();
+    show('screen-reveal');
+  };
+
+  function renderRevealStep(){
+    $('dossier').classList.remove('flipped');
+    state.revealStage = 'handoff';
+    const pIdx = state.revealOrder[state.revealIndex];
+    const name = state.names[pIdx];
+    
+    $('passName').textContent = `Hand phone to: ${name}`;
+    $('passInstr').textContent = 'Only you should see this screen.';
+    $('btnRevealAction').textContent = `I am ${name}. Show role`;
+    $('btnRevealAction').style.display = 'flex';
+    
+    const role = state.roles[pIdx];
+    const back = $('roleBack');
+    back.classList.remove('crew', 'impostor');
+    back.classList.add(role);
+
+    if(role === 'crew'){
+      $('roleEyebrow').textContent = 'CREWMATE';
+      $('roleEyebrow').style.color = 'var(--teal)';
+      $('roleWord').textContent = state.word.toUpperCase();
+      $('roleWord').className = 'role-word crew-text';
+      $('roleHint').textContent = 'This is your secret word. Do not mention it directly.';
+    } else {
+      $('roleEyebrow').textContent = 'IMPOSTOR';
+      $('roleEyebrow').style.color = 'var(--crimson)';
+      $('roleWord').textContent = 'YOU ARE THE IMPOSTOR';
+      $('roleWord').className = 'role-word impostor-text';
+      if(state.hintMode === 'word') $('roleHint').textContent = `Hint: "${state.hintWord}". Pretend you know the word.`;
+      else if(state.hintMode === 'topic') $('roleHint').textContent = `Category: ${state.category}. You don't know the word — pretend.`;
+      else $('roleHint').textContent = 'You don\'t know the word. Listen to others.';
+    }
+  }
+
+  $('btnRevealAction').onclick = () => {
+    if(state.revealStage === 'handoff'){
+      $('dossier').classList.add('flipped');
+      $('btnRevealAction').textContent = 'Hide and pass to next →';
+      state.revealStage = 'shown';
+    } else if(state.revealStage === 'shown'){
+      $('dossier').classList.remove('flipped');
+      $('btnRevealAction').style.display = 'none';
+      state.revealStage = 'transition';
+      
+      setTimeout(() => {
+        state.revealIndex++;
+        if(state.revealIndex >= state.playersCount){
+          startTimerPhase();
+        } else {
+          renderRevealStep();
+        }
+      }, 550);
+    }
+  };
+
+  function startTimerPhase(msg = ''){
+    show('screen-timer');
+    $('roundMsg').textContent = msg;
+    $('timerDisplay').textContent = String(state.time).padStart(2,'0') + ':00';
+    $('timerRing').style.setProperty('--pct', 100);
+    state.timerSeconds = state.time * 60;
+    
+    $('btnStartTimer').style.display = 'flex';
+    $('btnStartTimer').textContent = 'Start timer';
+    $('btnToEliminate').style.display = 'flex';
+    clearInterval(state.timerInterval);
+  }
+
+  $('btnStartTimer').onclick = () => {
+    if($('btnStartTimer').textContent === 'Pause'){
+      clearInterval(state.timerInterval);
+      $('btnStartTimer').textContent = 'Resume timer';
+    } else {
+      $('btnStartTimer').textContent = 'Pause';
+      state.timerInterval = setInterval(() => {
+        state.timerSeconds--;
+        const m = String(Math.floor(state.timerSeconds / 60)).padStart(2, '0');
+        const s = String(state.timerSeconds % 60).padStart(2, '0');
+        $('timerDisplay').textContent = `${m}:${s}`;
+        const total = state.time * 60;
+        $('timerRing').style.setProperty('--pct', Math.max(0, Math.round((state.timerSeconds/total)*100)));
+        if(state.timerSeconds <= 0){
+          clearInterval(state.timerInterval);
+          $('btnStartTimer').textContent = 'Time is up';
+        }
+      }, 1000);
+    }
+  };
+
+  $('btnToEliminate').onclick = () => {
+    clearInterval(state.timerInterval);
+    show('screen-eliminate');
+    const grid = $('eliminateGrid');
+    grid.innerHTML = '';
+    
+    for(let i=0; i<state.playersCount; i++){
+      if(state.eliminated[i]) continue;
+      grid.innerHTML += `<button class="vote-btn" onclick="eliminatePlayer(${i})">${state.names[i]}</button>`;
+    }
+  };
+
+  window.eliminatePlayer = (idx) => {
+    if(!confirm(`Are you sure you want to eliminate ${state.names[idx]}?`)) return;
+    
+    if(state.roles[idx] === 'crew'){
+      endGame('innocent_voted', idx);
+    } else {
+      state.caughtImpostorIndex = idx;
+      show('screen-guess');
+      $('caughtName').textContent = state.names[idx];
+    }
+  };
+
+  window.handleWrongGuess = () => {
+    state.eliminated[state.caughtImpostorIndex] = true;
+    
+    let remainingImp = 0;
+    let remainingCrew = 0;
+    for(let i=0; i<state.playersCount; i++){
+      if(!state.eliminated[i]){
+        if(state.roles[i] === 'impostor') remainingImp++;
+        else remainingCrew++;
+      }
+    }
+
+    if(remainingImp === 0) endGame('all_caught');
+    else if(remainingCrew <= remainingImp) endGame('impostors_majority');
+    else startTimerPhase(`Impostor guessed wrong. Still ${remainingImp} impostor(s) left.`);
+  };
+
+  window.endGame = (reason, victimIdx = null) => {
+    show('screen-results');
+    const banner = $('winnerBanner');
+    let winMsg = '';
+    
+    if(reason === 'impostor_guessed'){
+      banner.textContent = 'IMPOSTORS WIN';
+      banner.className = 'winner-banner impostor';
+      winMsg = 'The impostor was caught, but guessed the correct word!';
+    } else if(reason === 'innocent_voted'){
+      banner.textContent = 'IMPOSTORS WIN';
+      banner.className = 'winner-banner impostor';
+      winMsg = `The group eliminated an innocent player (${state.names[victimIdx]}).`;
+    } else if(reason === 'impostors_majority'){
+      banner.textContent = 'IMPOSTORS WIN';
+      banner.className = 'winner-banner impostor';
+      winMsg = 'Too few players left to vote out the impostors.';
+    } else if(reason === 'all_caught'){
+      banner.textContent = 'CREWMATES WIN';
+      banner.className = 'winner-banner crew';
+      winMsg = 'All impostors caught — the crew wins!';
+    }
+
+    $('winReason').textContent = winMsg;
+    $('resultWord').textContent = state.word.toUpperCase();
+
+    $('resultsList').innerHTML = '';
+    for(let i=0; i<state.playersCount; i++){
+      const isImp = state.roles[i] === 'impostor';
+      const elimTag = state.eliminated[i] || (reason !== 'innocent_voted' && i === state.caughtImpostorIndex) ? ' (caught)' : '';
+      $('resultsList').innerHTML += `
+        <div class="rcard ${isImp ? 'impostor' : 'crew'}">
+          <div class="rname">${state.names[i]}${elimTag}</div>
+          <div class="rrole">${isImp ? 'IMPOSTOR' : 'CREWMATE'}</div>
+        </div>`;
+    }
+  };
+
+  window.resetSamePlayers = () => {
+    $('btnStartDistribution').click();
+  };
+
+  renderSetup();
+</script>
+</body>
+</html>
