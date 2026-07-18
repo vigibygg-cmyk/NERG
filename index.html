@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>IMPOSTORIUS — Start</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#15151a; --bg-deep:#0e0e11; --surface:#1f1e24; --surface-2:#26252c;
+    --line:#38363f; --ink:#e9e4da; --muted:#928d97;
+    --crimson:#b8433c; --teal:#4d7c72; --gold:#c8a45c;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  body{
+    margin:0; background:radial-gradient(ellipse at top, #1c1b21 0%, var(--bg-deep) 70%);
+    color:var(--ink); font-family:'IBM Plex Sans', sans-serif;
+    min-height:100vh; display:flex; align-items:center; justify-content:center;
+    padding:20px; overflow-x:hidden;
+  }
+  .stage{
+    width:100%; max-width:480px; min-height:640px; background:var(--surface);
+    border:1px solid var(--line); border-radius:20px; position:relative; overflow:hidden;
+    box-shadow:0 30px 80px -20px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.02) inset;
+    display:flex; flex-direction:column; padding:28px 24px 24px;
+  }
+  .stage::before{
+    content:""; position:absolute; inset:0;
+    background-image:repeating-linear-gradient(0deg, rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px, transparent 1px, transparent 3px);
+    pointer-events:none; opacity:0.5; z-index:0;
+  }
+  .content{ position:relative; z-index:1; display:flex; flex-direction:column; flex:1; }
+  
+  .masthead{ display:flex; align-items:baseline; justify-content:space-between; border-bottom:1px solid var(--line); padding-bottom:14px; margin-bottom:22px; }
+  .masthead .brand{ font-family:'Fraunces', serif; font-weight:700; font-size:22px; color:var(--ink); }
+  .masthead .brand span{color:var(--crimson);}
+  
+  h1.title{ font-family:'Fraunces', serif; font-size:28px; font-weight:600; margin:0 0 24px; text-align:center;}
+  
+  .section-title { font-size:13px; font-weight:600; color:var(--muted); margin-bottom:10px; text-transform:uppercase; letter-spacing:1px; }
+  
+  .grid-options { display:grid; grid-template-columns:1fr; gap:10px; margin-bottom:24px; }
+  .grid-3 { grid-template-columns:repeat(3, 1fr); }
+  
+  .opt-btn { 
+    padding:16px; border-radius:12px; background:var(--surface-2); 
+    border:1px solid var(--line); color:var(--ink); font-size:15px; 
+    font-weight:600; cursor:pointer; transition:all 0.15s; text-align:center;
+  }
+  .opt-btn:active { transform:scale(0.98); }
+  .opt-btn.selected { border-color:var(--gold); background:rgba(200,164,92,0.15); color:var(--gold); }
+  
+  .spacer{flex:1;}
+  
+  .btn-primary{ 
+    display:flex; align-items:center; justify-content:center; gap:8px; 
+    width:100%; padding:16px; border-radius:12px; border:none; 
+    font-family:'IBM Plex Sans', sans-serif; font-size:15px; font-weight:600; 
+    cursor:pointer; background:var(--crimson); color:#fff; transition: transform 0.1s;
+  }
+  .btn-primary:active{transform:scale(0.98);}
+
+  .desc { font-size:12px; color:var(--muted); margin-top:4px; font-weight:400; }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="content">
+    <div class="masthead">
+      <div class="brand" id="t_brand">IMPOST<span>OR</span></div>
+    </div>
+    
+    <h1 class="title" id="t_mainTitle">Choose Game</h1>
+
+    <div class="section-title" id="t_sec1">1. Language</div>
+    <div class="grid-options grid-3" id="langGrid">
+      <div class="opt-btn selected" onclick="selectLang('EN')">EN</div>
+      <div class="opt-btn" onclick="selectLang('LT')">LT</div>
+      <div class="opt-btn" onclick="selectLang('NO')">NO</div>
+    </div>
+
+    <div class="section-title" id="t_sec2">2. Game Mode</div>
+    <div class="grid-options" id="modeGrid">
+      <div class="opt-btn selected" onclick="selectMode('online')">
+        <span id="t_modeOnlineTitle">Multiple phones (Online)</span>
+        <div class="desc" id="t_modeOnlineDesc">Each player uses their own phone</div>
+      </div>
+      <div class="opt-btn" onclick="selectMode('local')">
+        <span id="t_modeLocalTitle">One phone (Local)</span>
+        <div class="desc" id="t_modeLocalDesc">Phone is passed around</div>
+      </div>
+    </div>
+
+    <div class="spacer"></div>
+    <button class="btn-primary" onclick="startGame()" id="t_btnStart">Start →</button>
+  </div>
+</div>
+
+<script>
+  const dict = {
+    EN: {
+      brandHTML: "IMPOST<span>OR</span>",
+      mainTitle: "Choose Game",
+      sec1: "1. Language",
+      sec2: "2. Game Mode",
+      modeOnlineTitle: "Multiple phones (Online)",
+      modeOnlineDesc: "Each player uses their own phone",
+      modeLocalTitle: "One phone (Local)",
+      modeLocalDesc: "Phone is passed around",
+      btnStart: "Start →"
+    },
+    LT: {
+      brandHTML: "IMPOST<span>OR</span>IUS",
+      mainTitle: "Pasirinkite žaidimą",
+      sec1: "1. Kalba",
+      sec2: "2. Žaidimo režimas",
+      modeOnlineTitle: "Keli telefonai (Online)",
+      modeOnlineDesc: "Kiekvienas žaidėjas naudoja savo telefoną",
+      modeLocalTitle: "Vienas telefonas (Local)",
+      modeLocalDesc: "Telefonas perduodamas iš rankų į rankas",
+      btnStart: "Pradėti →"
+    },
+    NO: {
+      brandHTML: "BEDRAG<span>ER</span>",
+      mainTitle: "Velg spill",
+      sec1: "1. Språk",
+      sec2: "2. Spillmodus",
+      modeOnlineTitle: "Flere telefoner (Online)",
+      modeOnlineDesc: "Hver spiller bruker sin egen telefon",
+      modeLocalTitle: "Én telefon (Lokal)",
+      modeLocalDesc: "Telefonen sendes rundt",
+      btnStart: "Start →"
+    }
+  };
+
+  let currentLang = 'EN';
+  let currentMode = 'online';
+
+  function applyTranslations(lang) {
+    document.getElementById('t_brand').innerHTML = dict[lang].brandHTML;
+    document.getElementById('t_mainTitle').textContent = dict[lang].mainTitle;
+    document.getElementById('t_sec1').textContent = dict[lang].sec1;
+    document.getElementById('t_sec2').textContent = dict[lang].sec2;
+    document.getElementById('t_modeOnlineTitle').textContent = dict[lang].modeOnlineTitle;
+    document.getElementById('t_modeOnlineDesc').textContent = dict[lang].modeOnlineDesc;
+    document.getElementById('t_modeLocalTitle').textContent = dict[lang].modeLocalTitle;
+    document.getElementById('t_modeLocalDesc').textContent = dict[lang].modeLocalDesc;
+    document.getElementById('t_btnStart').textContent = dict[lang].btnStart;
+    document.documentElement.lang = lang.toLowerCase();
+    document.title = dict[lang].brandHTML.replace(/<[^>]*>?/gm, '') + " — Start";
+  }
+
+  function selectLang(lang) {
+    currentLang = lang;
+    const buttons = document.getElementById('langGrid').children;
+    for(let btn of buttons) {
+      btn.classList.remove('selected');
+      if(btn.textContent === lang) btn.classList.add('selected');
+    }
+    applyTranslations(lang);
+  }
+
+  function selectMode(mode) {
+    currentMode = mode;
+    const buttons = document.getElementById('modeGrid').children;
+    buttons[0].classList.remove('selected');
+    buttons[1].classList.remove('selected');
+    
+    if(mode === 'online') buttons[0].classList.add('selected');
+    else buttons[1].classList.add('selected');
+  }
+
+  function startGame() {
+    let fileName = `IM_${currentLang}`;
+    if (currentMode === 'local') {
+      fileName += '_1';
+    }
+    fileName += '.html';
+    
+    window.location.href = fileName;
+  }
+
+  applyTranslations(currentLang);
+</script>
+
+</body>
+</html>
