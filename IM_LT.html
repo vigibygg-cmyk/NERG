@@ -2,7 +2,7 @@
 <html lang="lt">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>IMPOSTORIUS — Online Byla</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -34,7 +34,7 @@
     background-image:repeating-linear-gradient(0deg, rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px, transparent 1px, transparent 3px);
     pointer-events:none; opacity:0.5; z-index:0;
   }
-  .screen{ display:none; flex-direction:column; flex:1; padding:28px 24px 24px; position:relative; z-index:1; }
+  .screen{ display:none; flex-direction:column; flex:1; padding:calc(28px + env(safe-area-inset-top)) 24px 24px; position:relative; z-index:1; }
   .screen.active{display:flex; animation:fadeIn .35s ease;}
   @keyframes fadeIn{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
 
@@ -136,8 +136,12 @@
 
   <!-- SCREEN 1: LOBBY & SETUP -->
   <section class="screen" id="screen-lobby">
-    <div class="masthead"><div class="brand">IMPOST<span>OR</span>IUS</div><div class="case-tag" id="lobbyRoomCode">KODAS: ----</div></div>
-    <h1 class="title">Laukiamasis</h1>
+    <div class="masthead"><div class="brand">IMPOST<span>OR</span>IUS</div><div class="case-tag">Laukiamasis</div></div>
+    
+    <div style="text-align:center; padding:16px; border:1px solid var(--gold); border-radius:12px; background:var(--surface-2); margin-bottom:20px;">
+      <div style="font-family:'JetBrains Mono'; font-size:11px; letter-spacing:2px; color:var(--gold); margin-bottom:4px;">PRISIJUNGIMO KODAS</div>
+      <div id="lobbyRoomCodeBig" style="font-family:'JetBrains Mono'; font-size:38px; font-weight:700; letter-spacing:8px; color:var(--ink);">----</div>
+    </div>
 
     <div class="player-list" id="lobbyPlayers"></div>
 
@@ -269,31 +273,6 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getDatabase, ref, get, onValue, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-
-  /*
-   * SVARBU — Firebase Rules:
-   * "rooms/$room_id" saugo visus jautrius žaidimo duomenis (žodžius, vaidmenis,
-   * balsus) ir yra pasiekiamas TIK žinant konkretų kambario kodą — ne per visos
-   * "/rooms" šakos sąrašą. "roomIndex" yra atskiras, NEJAUTRUS sąrašas
-   * ({kambarioId: {createdAt}}), naudojamas tik tam, kad klientai galėtų rasti
-   * ir ištrinti pasenusius (>2 val.) kambarius, neturėdami plačios skaitymo
-   * prieigos prie tikrųjų žaidimo duomenų. Firebase konsolėje nustatykite:
-   *
-   * {
-   *   "rules": {
-   *     "rooms": {
-   *       "$room_id": {
-   *         ".read": true,
-   *         ".write": true
-   *       }
-   *     },
-   *     "roomIndex": {
-   *       ".read": true,
-   *       ".write": true
-   *     }
-   *   }
-   * }
-   */
 
   const firebaseConfig = {
     apiKey: "AIzaSyBXeWZeljTjkCOqIpNQTbqFBAfyazOiGXs",
@@ -542,7 +521,7 @@
 
   function setupLobby() {
     show('screen-lobby');
-    $('lobbyRoomCode').textContent = `KODAS: ${myRoom}`;
+    $('lobbyRoomCodeBig').textContent = myRoom;
 
     if(isHost){
       $('hostControls').style.display = 'block';
