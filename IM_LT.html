@@ -22,8 +22,9 @@
     min-height:100vh; display:flex; align-items:center; justify-content:center;
     padding:20px; overflow-x:hidden;
   }
+  @media (prefers-reduced-motion: reduce){ *{animation-duration:0.001s !important; transition-duration:0.001s !important;} }
   .stage{
-    width:100%; max-width:480px; min-height:640px; background:var(--surface);
+    width:100%; max-width:480px; min-height:660px; background:var(--surface);
     border:1px solid var(--line); border-radius:20px; position:relative; overflow:hidden;
     box-shadow:0 30px 80px -20px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.02) inset;
     display:flex; flex-direction:column;
@@ -36,25 +37,26 @@
   .screen{ display:none; flex-direction:column; flex:1; padding:28px 24px 24px; position:relative; z-index:1; }
   .screen.active{display:flex; animation:fadeIn .35s ease;}
   @keyframes fadeIn{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
-  
+
   .masthead{ display:flex; align-items:baseline; justify-content:space-between; border-bottom:1px solid var(--line); padding-bottom:14px; margin-bottom:22px; }
   .masthead .brand{ font-family:'Fraunces', serif; font-weight:700; font-size:22px; color:var(--ink); }
   .masthead .brand span{color:var(--crimson);}
   .case-tag{ font-family:'JetBrains Mono', monospace; font-size:10.5px; letter-spacing:1.5px; color:var(--muted); text-transform:uppercase; }
-  h1.title{ font-family:'Fraunces', serif; font-size:28px; font-weight:600; margin:0 0 6px; }
-  p.sub{ color:var(--muted); font-size:14.5px; line-height:1.5; margin:0 0 24px; }
-  
-  .field{margin-bottom:20px;}
-  .field-label{ display:flex; justify-content:space-between; align-items:center; font-size:13px; font-weight:600; color:var(--ink); margin-bottom:10px; }
+  h1.title{ font-family:'Fraunces', serif; font-size:26px; font-weight:600; margin:0 0 6px; }
+  p.sub{ color:var(--muted); font-size:14px; line-height:1.5; margin:0 0 22px; }
+
+  .field{margin-bottom:18px;}
+  .field-label{ display:flex; justify-content:space-between; align-items:center; font-size:13px; font-weight:600; color:var(--ink); margin-bottom:9px; }
+  .field-label .hint{ font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--muted); font-weight:400; }
   .stepper{ display:flex; align-items:center; justify-content:space-between; background:var(--surface-2); border:1px solid var(--line); border-radius:12px; padding:6px; }
   .stepper button{ width:44px; height:44px; border-radius:9px; border:none; background:var(--bg-deep); color:var(--ink); font-size:20px; font-weight:600; cursor:pointer; }
   .stepper button:disabled{opacity:0.3; cursor:not-allowed;}
-  .stepper .count{ font-family:'JetBrains Mono', monospace; font-size:26px; font-weight:700; min-width:48px; text-align:center; color:var(--gold); }
-  
+  .stepper .count{ font-family:'JetBrains Mono', monospace; font-size:24px; font-weight:700; min-width:44px; text-align:center; color:var(--gold); }
+
   .chip-row{display:flex; flex-wrap:wrap; gap:8px;}
-  .chip{ padding:9px 14px; border-radius:999px; border:1px solid var(--line); background:var(--surface-2); color:var(--muted); font-size:13px; font-weight:500; cursor:pointer; user-select:none;}
+  .chip{ padding:9px 14px; border-radius:999px; border:1px solid var(--line); background:var(--surface-2); color:var(--muted); font-size:12.5px; font-weight:500; cursor:pointer; user-select:none;}
   .chip.on{ border-color:var(--teal); background:rgba(77,124,114,0.18); color:#a9d4c8; }
-  
+
   input[type="text"] { width:100%; padding:14px; border-radius:12px; border:1px solid var(--line); background:var(--surface-2); color:var(--ink); font-size:16px; font-family:'IBM Plex Sans', sans-serif; margin-bottom:12px; outline:none; text-transform:uppercase; }
   input[type="text"]:focus { border-color:var(--gold); }
 
@@ -64,14 +66,18 @@
   .btn-primary{background:var(--crimson); color:#fff;}
   .btn-primary:disabled{background:var(--surface-2); color:var(--muted); cursor:not-allowed; transform:none;}
   .btn-ghost{background:transparent; border:1px solid var(--line); color:var(--ink);}
+  .btn-ghost:disabled{opacity:.4; cursor:not-allowed;}
   .btn-success{background:var(--teal); color:#fff;}
-  
-  .player-list { background:var(--surface-2); border:1px solid var(--line); border-radius:12px; padding:12px; margin-bottom:20px; min-height:100px; max-height:200px; overflow-y:auto; }
-  .player-item { padding:8px 0; border-bottom:1px solid var(--line); font-size:14px; display:flex; justify-content:space-between; }
+  .btn-small{padding:11px; font-size:13.5px;}
+
+  .error-line{ color:#e3928c; font-size:12.5px; margin:-4px 0 10px; min-height:16px; text-align:center; }
+
+  .player-list { background:var(--surface-2); border:1px solid var(--line); border-radius:12px; padding:12px; margin-bottom:16px; min-height:100px; max-height:200px; overflow-y:auto; }
+  .player-item { padding:8px 0; border-bottom:1px solid var(--line); font-size:14px; display:flex; justify-content:space-between; align-items:center; }
   .player-item:last-child { border-bottom:none; }
+  .player-item.eliminated{ opacity:.45; text-decoration:line-through; }
   .host-badge { font-size:10px; background:var(--gold); color:var(--bg-deep); padding:2px 6px; border-radius:4px; font-weight:bold; }
 
-  /* Dossier styling */
   .dossier{ width:100%; max-width:300px; aspect-ratio:5/6.6; perspective:1400px; margin:0 auto 26px; cursor:pointer;}
   .dossier-inner{ position:relative; width:100%; height:100%; transform-style:preserve-3d; transition:transform .55s cubic-bezier(.2,.8,.2,1); }
   .dossier.flipped .dossier-inner{transform:rotateY(180deg);}
@@ -84,14 +90,16 @@
   .impostor-text { color: #e3928c; }
   .crew-text { color: #a9d4c8; }
 
-  .timer-ring{ width:220px; height:220px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:conic-gradient(var(--gold) calc(var(--pct,100)*1%), var(--surface-2) 0); margin:0 auto 28px; transition:background 1s linear; }
+  .timer-ring{ width:220px; height:220px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:conic-gradient(var(--gold) calc(var(--pct,100)*1%), var(--surface-2) 0); margin:0 auto 20px; transition:background 1s linear; }
   .timer-ring-inner{ width:186px; height:186px; border-radius:50%; background:var(--surface); display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono', monospace; font-size:40px; font-weight:700; }
-  
+
+  .round-msg{ text-align:center; font-size:12.5px; color:var(--gold); margin-bottom:10px; min-height:16px; }
+
   .vote-grid{ display:flex; flex-direction:column; gap:10px; margin-bottom:20px; }
   .vote-btn{ padding:16px; border-radius:12px; background:var(--surface-2); border:1px solid var(--line); color:var(--ink); font-size:15px; font-weight:600; cursor:pointer; transition:all 0.15s;}
   .vote-btn:active{transform:scale(0.98);}
   .vote-btn.selected{ border-color:var(--gold); background:rgba(200,164,92,0.15); color:var(--gold); }
-  
+
   .results-grid{ display:grid; grid-template-columns:repeat(2, 1fr); gap:10px; margin-bottom:18px; }
   .rcard{ border:1px solid var(--line); border-radius:12px; padding:12px; background:var(--surface-2); min-height:78px; display:flex; flex-direction:column; justify-content:center; }
   .rcard .rname{font-size:13px; font-weight:600; margin-bottom:4px;}
@@ -100,10 +108,12 @@
   .rcard.crew .rrole{color:#a9d4c8;}
   .rcard.impostor{border-color:var(--crimson); background:rgba(184,67,60,0.14);}
   .rcard.impostor .rrole{color:#e3928c;}
-  
+
   .winner-banner{ text-align:center; padding:16px; border-radius:12px; margin-bottom:20px; font-family:'Fraunces', serif; font-size:22px; font-weight:700; border:2px solid transparent; }
   .winner-banner.crew{ border-color:var(--teal); background:rgba(77,124,114,0.15); color:var(--teal); }
   .winner-banner.impostor{ border-color:var(--crimson); background:rgba(184,67,60,0.15); color:var(--crimson); }
+  ::-webkit-scrollbar{width:6px;}
+  ::-webkit-scrollbar-thumb{background:var(--line); border-radius:3px;}
 </style>
 </head>
 <body>
@@ -115,7 +125,8 @@
     <div class="masthead"><div class="brand">IMPOST<span>OR</span>IUS</div><div class="case-tag">Prisijungimas</div></div>
     <h1 class="title">Kas tu?</h1>
     <p class="sub">Įvesk savo vardą ir sukurk arba prisijunk prie kambario.</p>
-    <input type="text" id="playerName" placeholder="TAVO VARDAS" maxlength="12">
+    <input type="text" id="playerName" placeholder="TAVO VARDAS" maxlength="18">
+    <div class="error-line" id="introError"></div>
     <div class="spacer"></div>
     <button class="btn btn-primary" id="btnCreateRoom" style="margin-bottom:12px;">Sukurti naują kambarį</button>
     <div style="text-align:center; color:var(--muted); margin-bottom:12px; font-size:12px;">ARBA</div>
@@ -127,29 +138,41 @@
   <section class="screen" id="screen-lobby">
     <div class="masthead"><div class="brand">IMPOST<span>OR</span>IUS</div><div class="case-tag" id="lobbyRoomCode">KODAS: ----</div></div>
     <h1 class="title">Laukiamasis</h1>
-    
+
     <div class="player-list" id="lobbyPlayers"></div>
 
     <div id="hostControls" style="display:none;">
       <div class="field">
-        <div class="field-label">Impostorių skaičius</div>
+        <div class="field-label">Impostorių skaičius <span class="hint" id="impHint">1–4</span></div>
         <div class="stepper">
           <button id="impMinus">−</button><div class="count" id="impCount">1</div><button id="impPlus">+</button>
         </div>
       </div>
       <div class="field">
-        <div class="field-label">Kategorija</div>
+        <div class="field-label">Kategorijos <span class="hint">galima kelias</span></div>
+        <div style="display:flex; gap:8px; margin-bottom:9px;">
+          <button type="button" class="btn btn-ghost btn-small" id="catAll" style="flex:1;">Visos</button>
+          <button type="button" class="btn btn-ghost btn-small" id="catOne" style="flex:1;">Tik viena</button>
+        </div>
         <div class="chip-row" id="categoryChips"></div>
       </div>
       <div class="field">
-        <div class="field-label">Laikas (min)</div>
+        <div class="field-label">Laikas (min) <span class="hint" id="timeHint">3 min.</span></div>
         <div class="stepper">
           <button id="timeMinus">−</button><div class="count" id="timeCount">3</div><button id="timePlus">+</button>
         </div>
       </div>
+      <div class="field">
+        <div class="field-label">Impostoriaus užuomina</div>
+        <div class="chip-row" id="hintChips">
+          <div class="chip" data-mode="topic">Tema</div>
+          <div class="chip" data-mode="word">Susijęs žodis</div>
+          <div class="chip" data-mode="none">Jokios</div>
+        </div>
+      </div>
       <button class="btn btn-primary" id="btnStartGame">Pradėti žaidimą →</button>
     </div>
-    
+
     <div id="clientWait" style="text-align:center; color:var(--muted); margin-top:20px; font-size:14px;">
       Laukiama, kol kambario kūrėjas nustatys parametrus ir pradės žaidimą...
     </div>
@@ -182,7 +205,8 @@
   <section class="screen" id="screen-timer">
     <div class="masthead"><div class="brand">IMPOST<span>OR</span>IUS</div><div class="case-tag">Apklausa</div></div>
     <div class="spacer"></div>
-    <div style="text-align:center; font-size:13px; color:var(--muted); margin-bottom:26px;">Aptarkite ir bandykite nustatyti, kas meluoja</div>
+    <div class="round-msg" id="roundMsg"></div>
+    <div style="text-align:center; font-size:13px; color:var(--muted); margin-bottom:20px;">Aptarkite ir bandykite nustatyti, kas meluoja</div>
     <div class="timer-ring" id="timerRing" style="--pct:100"><div class="timer-ring-inner" id="timerDisplay">03:00</div></div>
     <div class="spacer"></div>
     <button class="btn btn-primary" id="btnStartTimer" style="display:none; margin-bottom:12px;">Pradėti laikmatį</button>
@@ -195,10 +219,11 @@
     <div class="masthead"><div class="brand">IMPOST<span>OR</span>IUS</div><div class="case-tag">Balsavimas</div></div>
     <h1 class="title">Kas yra impostorius?</h1>
     <p class="sub">Pasirinkite vieną įtariamąjį. Kai visi prabalsuos, paaiškės rezultatas.</p>
-    
+    <div class="round-msg" id="voteRoundMsg"></div>
+
     <div class="vote-grid" id="voteGrid"></div>
     <div class="spacer"></div>
-    
+
     <div id="voteStatus" style="text-align:center; color:var(--muted); font-size:14px; margin-bottom:15px;">Balsavo: 0 / 0</div>
   </section>
 
@@ -207,7 +232,7 @@
     <div class="masthead"><div class="brand">IMPOST<span>OR</span>IUS</div><div class="case-tag">Paskutinis šansas</div></div>
     <h1 class="title">Impostorius sugautas!</h1>
     <p class="sub" style="font-size:16px;">
-      <strong id="caughtName" style="color:var(--crimson)">Vardas</strong> buvo impostorius. 
+      <strong id="caughtName" style="color:var(--crimson)">Vardas</strong> buvo impostorius.
       Dabar jis privalo garsiai atspėti slaptą žodį.
     </p>
     <div class="spacer"></div>
@@ -229,12 +254,13 @@
       <div style="font-family:'JetBrains Mono'; font-size:10.5px; letter-spacing:2px; color:var(--gold); margin-bottom:6px;">SLAPTAS ŽODIS BUVO:</div>
       <div id="resultWord" style="font-family:'Fraunces'; font-size:24px; font-weight:700;"></div>
     </div>
-    
+
     <div class="results-grid" id="resultsList"></div>
-    
+
     <div class="spacer"></div>
     <button class="btn btn-ghost" id="btnRestart" style="display:none; margin-bottom:12px;">Nauja byla, tie patys žaidėjai</button>
-    <button class="btn btn-ghost" onclick="location.reload()">Atsijungti</button>
+    <button class="btn btn-primary" id="btnEndRoom" style="display:none; margin-bottom:12px; background:var(--crimson-dim);">Baigti kambarį (ištrinti)</button>
+    <button class="btn btn-ghost" id="btnLeave">Atsijungti</button>
     <div id="resultsWait" style="text-align:center; color:var(--muted); font-size:14px; display:none; margin-top:10px;">Laukiama hosto...</div>
   </section>
 
@@ -242,7 +268,32 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getDatabase, ref, set, get, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+  import { getDatabase, ref, get, onValue, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+  /*
+   * SVARBU — Firebase Rules:
+   * "rooms/$room_id" saugo visus jautrius žaidimo duomenis (žodžius, vaidmenis,
+   * balsus) ir yra pasiekiamas TIK žinant konkretų kambario kodą — ne per visos
+   * "/rooms" šakos sąrašą. "roomIndex" yra atskiras, NEJAUTRUS sąrašas
+   * ({kambarioId: {createdAt}}), naudojamas tik tam, kad klientai galėtų rasti
+   * ir ištrinti pasenusius (>2 val.) kambarius, neturėdami plačios skaitymo
+   * prieigos prie tikrųjų žaidimo duomenų. Firebase konsolėje nustatykite:
+   *
+   * {
+   *   "rules": {
+   *     "rooms": {
+   *       "$room_id": {
+   *         ".read": true,
+   *         ".write": true
+   *       }
+   *     },
+   *     "roomIndex": {
+   *       ".read": true,
+   *       ".write": true
+   *     }
+   *   }
+   * }
+   */
 
   const firebaseConfig = {
     apiKey: "AIzaSyBXeWZeljTjkCOqIpNQTbqFBAfyazOiGXs",
@@ -268,79 +319,276 @@
     "Gamta ir reiškiniai": [["Perkūnija","Dundėjimas"],["Vaivorykštė","Spalvos"],["Sniegas","Balta"],["Lietus","Skėtis"],["Vėjas","Malūnas"],["Rūkas","Neaiškumas"],["Šalna","Ruduo"],["Saulėtekis","Rytas"],["Saulėlydis","Vakaras"],["Uraganas","Griūtis"],["Potvynis","Užliejimas"],["Ugnikalnis","Lava"],["Žemės drebėjimas","Plyšys"],["Ledkalnis","Vandenynas"],["Šaltinis","Gėlas vanduo"],["Kruša","Ledukai"],["Debesys","Dangus"],["Žaibas","Griausmas"],["Audra","Griaustinis"],["Sausra","Trūkumas"],["Speigas","Šaltis"],["Atodrėkis","Tirpimas"],["Rasa","Žolė"],["Šerkšnas","Ledas"],["Pūga","Pusnys"],["Viesulas","Sukūrys"],["Uola","Akmuo"],["Ola","Urvas"],["Slėnis","Kalnai"],["Dykuma","Smėlis"],["Oazė","Palmė"],["Ledynas","Amžinas"],["Geizeris","Karštas vanduo"],["Mėnulis","Naktis"],["Saulė","Šviesa"],["Žvaigždė","Mirgėjimas"],["Kometa","Uodega"],["Vulkanas","Išsiveržimas"],["Kalvos","Reljefas"],["Pelkė","Samanos"],["Balta naktis","Vasara"],["Šiaurės pašvaistė","Dangus"]],
     "Transportas": [["Automobilis","Ratai"],["Autobusas","Maršrutas"],["Traukinys","Bėgiai"],["Lėktuvas","Sparnai"],["Laivas","Vandenynas"],["Motociklas","Šalmas"],["Traktorius","Laukas"],["Valtis","Irklas"],["Baidarė","Upė"],["Tramvajus","Miestas"],["Troleibusas","Elektra"],["Raketa","Kosmosas"],["Oro balionas","Krepšys"],["Sraigtasparnis","Sraigtas"],["Keltas","Krantas"],["Jachta","Prabanga"],["Povandeninis laivas","Gelmė"],["Metro","Požemis"],["Taksi","Skaitiklis"],["Greitosios pagalbos automobilis","Sirena"],["Gaisrinė mašina","Žarna"],["Sunkvežimis","Krovinys"],["Ekskavatorius","Kaušas"],["Buldozeris","Peilis"],["Kranas","Kablys"],["Rogutės","Sniegas"],["Paspirtukas","Ratukai"],["Rikša","Azija"],["Karieta","Arkliai"],["Vežimas","Šienas"],["Vagonas","Prekės"],["Gondola","Venecija"],["Batutas","Elastinis"],["Furgonas","Dėžės"],["Cisterna","Skystis"]]
   };
+  const ALL_CATEGORIES = Object.keys(WORD_BANK);
 
+  // ---------- helpers ----------
+  const $ = id => document.getElementById(id);
+  const show = id => { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); $(id).classList.add('active'); };
+
+  function shuffleArray(arr){
+    for(let i = arr.length-1; i>0; i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  function genId(){
+    if(window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    return 'p-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,10);
+  }
+
+  const CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ"; // be I ir O, kad neklaidintų su 1/0
+  function genCode(){
+    let c = '';
+    for(let i=0;i<4;i++) c += CODE_ALPHABET[Math.floor(Math.random()*CODE_ALPHABET.length)];
+    return c;
+  }
+
+  async function safeCall(fn, errEl){
+    try{
+      await fn();
+      return true;
+    }catch(e){
+      console.error(e);
+      if(errEl) $(errEl).textContent = 'Įvyko klaida jungiantis prie serverio. Patikrinkite interneto ryšį ir bandykite dar kartą.';
+      else alert('Įvyko klaida jungiantis prie serverio. Bandykite dar kartą.');
+      return false;
+    }
+  }
+
+  const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
+
+  // Ištrina kambarius, kurių roomIndex įrašas senesnis nei 2 val.
+  // Naudoja tik "roomIndex" (nejautrūs duomenys), todėl saugu kviesti bet kuriam klientui.
+  async function cleanupStaleRooms(){
+    try{
+      const snap = await get(ref(db, 'roomIndex'));
+      if(!snap.exists()) return;
+      const index = snap.val();
+      const now = Date.now();
+      const staleIds = Object.keys(index).filter(id => (now - (index[id] && index[id].createdAt || 0)) > TWO_HOURS_MS);
+      if(staleIds.length === 0) return;
+      const updates = {};
+      staleIds.forEach(id => {
+        updates[`rooms/${id}`] = null;
+        updates[`roomIndex/${id}`] = null;
+      });
+      await update(ref(db), updates);
+    }catch(e){
+      console.error('Pasenusių kambarių valymas nepavyko (tęsiama toliau):', e);
+    }
+  }
+
+  // Ištrina konkretų kambarį iš karto (naudojama, kai hostas paspaudžia "Baigti kambarį")
+  async function deleteRoom(code){
+    const updates = {};
+    updates[`rooms/${code}`] = null;
+    updates[`roomIndex/${code}`] = null;
+    await update(ref(db), updates);
+  }
+
+  // ---------- session state ----------
+  let myId = genId();
   let myName = "";
   let myRoom = "";
   let isHost = false;
   let roomState = {};
   let localTimerInterval = null;
+  let roomListenerRef = null;
 
-  const $ = id => document.getElementById(id);
-  const show = id => { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); $(id).classList.add('active'); };
+  // host-only local word deck (no repeats until the pool of selected categories is exhausted)
+  let hostDeck = [];
+  let hostDeckIndex = 0;
+  let hostDeckKey = "";
 
-  function makeCode() {
-    return Math.random().toString(36).substring(2, 6).toUpperCase();
+  function buildHostDeck(categories){
+    const pool = [];
+    categories.forEach(cat => {
+      (WORD_BANK[cat] || []).forEach(pair => pool.push({ word: pair[0], hint: pair[1], cat }));
+    });
+    shuffleArray(pool);
+    hostDeck = pool;
+    hostDeckIndex = 0;
+    hostDeckKey = categories.slice().sort().join('|');
   }
 
+  function drawHostWord(categories){
+    const key = categories.slice().sort().join('|');
+    if(key !== hostDeckKey || hostDeck.length === 0){
+      buildHostDeck(categories);
+    }
+    if(hostDeckIndex >= hostDeck.length){
+      const last = hostDeck[hostDeck.length-1];
+      buildHostDeck(categories);
+      if(hostDeck.length > 1 && hostDeck[0].word === last.word){
+        [hostDeck[0], hostDeck[1]] = [hostDeck[1], hostDeck[0]];
+      }
+    }
+    return hostDeck[hostDeckIndex++];
+  }
+
+  // ---------- INTRO ----------
   $('btnCreateRoom').onclick = async () => {
+    $('introError').textContent = '';
     myName = $('playerName').value.trim().toUpperCase();
-    if(!myName) return alert("Įvesk savo vardą");
-    myRoom = makeCode();
+    if(!myName) { $('introError').textContent = 'Įveskite savo vardą.'; return; }
+
     isHost = true;
-    
-    await set(ref(db, `rooms/${myRoom}`), {
-      createdAt: Date.now(),
-      status: 'lobby',
-      settings: { impostors: 1, time: 3, category: "Maistas ir gėrimai" },
-      players: { [myName]: { role: '', isHost: true } },
-      votes: {}
-    });
-    
-    setupLobby();
+    let code = '';
+
+    const ok = await safeCall(async () => {
+      // pirmiausia — geros valios valymas: ištrinam kambarius, senesnius nei 2 val.
+      await cleanupStaleRooms();
+
+      // patikrinam, kad kodas dar neužimtas (labai maža tikimybė, bet patikrinam)
+      for(let attempt=0; attempt<5; attempt++){
+        code = genCode();
+        const snap = await get(ref(db, `rooms/${code}`));
+        if(!snap.exists()) break;
+      }
+      myRoom = code;
+      const createdAt = Date.now();
+
+      const updates = {};
+      updates[`rooms/${myRoom}`] = {
+        createdAt,
+        status: 'lobby',
+        settings: {
+          impostors: 1,
+          time: 3,
+          categories: ALL_CATEGORIES.slice(),
+          hintMode: 'topic'
+        },
+        players: { [myId]: { name: myName, isHost: true, role: '', joinedAt: Date.now() } },
+        eliminated: null,
+        votes: null
+      };
+      updates[`roomIndex/${myRoom}`] = { createdAt };
+
+      await update(ref(db), updates);
+    }, 'introError');
+
+    if(ok) setupLobby();
   };
 
   $('btnJoinRoom').onclick = async () => {
+    $('introError').textContent = '';
     myName = $('playerName').value.trim().toUpperCase();
-    if(!myName) return alert("Įvesk savo vardą");
-    myRoom = $('roomCodeInput').value.trim().toUpperCase();
-    if(myRoom.length !== 4) return alert("Neteisingas kodas");
-    
-    const snap = await get(ref(db, `rooms/${myRoom}`));
-    if(!snap.exists()) return alert("Kambarys nerastas");
-    
-    await update(ref(db, `rooms/${myRoom}/players`), { [myName]: { role: '', isHost: false } });
+    if(!myName) { $('introError').textContent = 'Įveskite savo vardą.'; return; }
+
+    const code = $('roomCodeInput').value.trim().toUpperCase();
+    if(code.length !== 4) { $('introError').textContent = 'Neteisingas kodas — turi būti 4 simboliai.'; return; }
+
     isHost = false;
+    myRoom = code;
+
+    try {
+      const snap = await get(ref(db, `rooms/${myRoom}`));
+      if(!snap.exists()){
+        $('introError').textContent = 'Kambarys nerastas. Patikrinkite kodą.';
+        return;
+      }
+      const data = snap.val();
+      if(data.status !== 'lobby'){
+        $('introError').textContent = 'Žaidimas jau prasidėjęs — negalima prisijungti dabar.';
+        return;
+      }
+      const currentPlayers = data.players || {};
+      if(Object.keys(currentPlayers).length >= 10){
+        $('introError').textContent = 'Kambarys pilnas (maksimum 10 žaidėjų).';
+        return;
+      }
+
+      await update(ref(db, `rooms/${myRoom}/players`), {
+        [myId]: { name: myName, isHost: false, role: '', joinedAt: Date.now() }
+      });
+    } catch(e) {
+      console.error(e);
+      $('introError').textContent = 'Įvyko klaida jungiantis prie serverio. Patikrinkite interneto ryšį ir bandykite dar kartą.';
+      return;
+    }
+
     setupLobby();
   };
+
+  // ---------- LOBBY ----------
+  function renderCategoryChips(selected){
+    const wrap = $('categoryChips');
+    wrap.innerHTML = '';
+    ALL_CATEGORIES.forEach(cat => {
+      const chip = document.createElement('div');
+      chip.className = 'chip' + (selected.includes(cat) ? ' on' : '');
+      chip.textContent = cat;
+      chip.onclick = () => {
+        let cats = roomState.settings.categories.slice();
+        if(cats.includes(cat)){
+          if(cats.length > 1) cats = cats.filter(c => c !== cat);
+        } else {
+          cats.push(cat);
+        }
+        updateSettings({ categories: cats });
+      };
+      wrap.appendChild(chip);
+    });
+  }
+
+  function renderHintChips(mode){
+    document.querySelectorAll('#hintChips .chip').forEach(chip => {
+      chip.classList.toggle('on', chip.dataset.mode === mode);
+      chip.onclick = () => updateSettings({ hintMode: chip.dataset.mode });
+    });
+  }
 
   function setupLobby() {
     show('screen-lobby');
     $('lobbyRoomCode').textContent = `KODAS: ${myRoom}`;
-    
-    if(isHost) {
+
+    if(isHost){
       $('hostControls').style.display = 'block';
       $('clientWait').style.display = 'none';
-      renderCategories();
     }
 
-    onValue(ref(db, `rooms/${myRoom}`), (snap) => {
-      roomState = snap.val();
-      if(!roomState) return;
+    if(roomListenerRef) { /* onValue nuoroda paliekama, klausomasi tik vieno kambario per sesiją */ }
+    roomListenerRef = ref(db, `rooms/${myRoom}`);
 
-      const playersArr = Object.keys(roomState.players);
-      
-      // Update UI elements based on state
-      if(roomState.status === 'lobby') {
-        $('lobbyPlayers').innerHTML = playersArr.map(p => `<div class="player-item">${p} ${roomState.players[p].isHost ? '<span class="host-badge">HOST</span>' : ''}</div>`).join('');
-        if(isHost) {
-          const maxImp = Math.max(1, Math.min(4, playersArr.length - 1));
-          if(roomState.settings.impostors > maxImp) updateSettings({ impostors: maxImp });
+    onValue(roomListenerRef, (snap) => {
+      roomState = snap.val();
+      if(!roomState){
+        // kambarys ištrintas / užbaigtas
+        alert('Kambarys nebeegzistuoja.');
+        location.reload();
+        return;
+      }
+
+      const players = roomState.players || {};
+      const playerIds = Object.keys(players);
+
+      if(roomState.status === 'lobby'){
+        $('lobbyPlayers').innerHTML = playerIds.map(id =>
+          `<div class="player-item">${players[id].name} ${players[id].isHost ? '<span class="host-badge">HOST</span>' : ''}</div>`
+        ).join('');
+
+        if(isHost){
+          const maxImp = Math.max(1, Math.min(4, playerIds.length - 1));
+          if(roomState.settings.impostors > maxImp){
+            updateSettings({ impostors: maxImp });
+          }
           $('impCount').textContent = roomState.settings.impostors;
-          $('timeCount').textContent = roomState.settings.time;
+          $('impHint').textContent = '1–' + maxImp;
           $('impPlus').disabled = roomState.settings.impostors >= maxImp;
           $('impMinus').disabled = roomState.settings.impostors <= 1;
-          $('btnStartGame').disabled = playersArr.length < 3;
-          $('btnStartGame').textContent = playersArr.length < 3 ? "Reikia bent 3 žaidėjų" : "Pradėti žaidimą →";
+
+          $('timeCount').textContent = roomState.settings.time;
+          $('timeHint').textContent = roomState.settings.time + ' min.';
+          $('timeMinus').disabled = roomState.settings.time <= 1;
+          $('timePlus').disabled = roomState.settings.time >= 10;
+
+          renderCategoryChips(roomState.settings.categories || []);
+          renderHintChips(roomState.settings.hintMode || 'topic');
+
+          $('btnStartGame').disabled = playerIds.length < 3;
+          $('btnStartGame').textContent = playerIds.length < 3 ? "Reikia bent 3 žaidėjų" : "Pradėti žaidimą →";
         }
         show('screen-lobby');
       }
@@ -355,54 +603,66 @@
 
   $('impMinus').onclick = () => updateSettings({ impostors: Math.max(1, roomState.settings.impostors - 1) });
   $('impPlus').onclick = () => {
-      const maxImp = Math.max(1, Object.keys(roomState.players).length - 1);
-      updateSettings({ impostors: Math.min(maxImp, roomState.settings.impostors + 1) });
+    const maxImp = Math.max(1, Object.keys(roomState.players || {}).length - 1);
+    updateSettings({ impostors: Math.min(maxImp, roomState.settings.impostors + 1) });
   };
   $('timeMinus').onclick = () => updateSettings({ time: Math.max(1, roomState.settings.time - 1) });
   $('timePlus').onclick = () => updateSettings({ time: Math.min(10, roomState.settings.time + 1) });
 
-  function renderCategories() {
-    $('categoryChips').innerHTML = Object.keys(WORD_BANK).map(cat => 
-      `<div class="chip ${roomState.settings?.category === cat ? 'on' : ''}" onclick="window.setCat('${cat}')">${cat}</div>`
-    ).join('');
-  }
-  window.setCat = cat => updateSettings({ category: cat });
-
-  async function updateSettings(newSettings) {
-    if(!isHost) return;
-    await update(ref(db, `rooms/${myRoom}/settings`), newSettings);
-    renderCategories();
-  }
-
-  $('btnStartGame').onclick = async () => {
-    const players = Object.keys(roomState.players);
-    if(players.length < 3) return;
-    
-    let shuffled = [...players].sort(() => 0.5 - Math.random());
-    let updates = { votes: null, finalReason: null, winner: null, caughtImpostor: null };
-    for(let i=0; i<players.length; i++) {
-      updates[`players/${shuffled[i]}/role`] = (i < roomState.settings.impostors) ? 'impostor' : 'crew';
-    }
-    
-    const catWords = WORD_BANK[roomState.settings.category];
-    const pair = catWords[Math.floor(Math.random() * catWords.length)];
-    updates['word'] = pair[0];
-    updates['hintWord'] = pair[1];
-    updates['status'] = 'reveal';
-    
-    await update(ref(db, `rooms/${myRoom}`), updates);
+  $('catAll').onclick = () => updateSettings({ categories: ALL_CATEGORIES.slice() });
+  $('catOne').onclick = () => {
+    const cur = roomState.settings.categories || [];
+    const first = ALL_CATEGORIES.find(c => cur.includes(c)) || ALL_CATEGORIES[0];
+    updateSettings({ categories: [first] });
   };
 
-  function showReveal() {
+  async function updateSettings(newSettings){
+    if(!isHost) return;
+    await safeCall(() => update(ref(db, `rooms/${myRoom}/settings`), newSettings));
+  }
+
+  // ---------- START GAME ----------
+  $('btnStartGame').onclick = async () => {
+    const players = roomState.players || {};
+    const playerIds = Object.keys(players);
+    if(playerIds.length < 3) return;
+
+    const shuffled = shuffleArray(playerIds.slice());
+    const impostorIds = new Set(shuffled.slice(0, roomState.settings.impostors));
+
+    const entry = drawHostWord(roomState.settings.categories);
+
+    const updates = {};
+    playerIds.forEach(id => {
+      updates[`players/${id}/role`] = impostorIds.has(id) ? 'impostor' : 'crew';
+    });
+    updates['word'] = entry.word;
+    updates['hintWord'] = entry.hint;
+    updates['status'] = 'reveal';
+    updates['eliminated'] = null;
+    updates['votes'] = null;
+    updates['caughtImpostor'] = null;
+    updates['finalReason'] = null;
+    updates['winner'] = null;
+    updates['timerEnd'] = 0;
+    updates['roundMessage'] = null;
+
+    await safeCall(() => update(ref(db, `rooms/${myRoom}`), updates));
+  };
+
+  // ---------- REVEAL ----------
+  function showReveal(){
     show('screen-reveal');
     $('dossier').classList.remove('flipped');
-    const myRole = roomState.players[myName].role;
+    const me = (roomState.players || {})[myId];
+    if(!me || !me.role) return; // apsauga, jei prisijungė vėluodamas
+    const myRole = me.role;
     const back = $('roleBack');
-    
+
     back.classList.remove('crew', 'impostor');
     back.classList.add(myRole);
 
-    if(myRole === 'crew') {
+    if(myRole === 'crew'){
       $('roleEyebrow').textContent = 'KOMANDOS NARYS';
       $('roleEyebrow').style.color = 'var(--teal)';
       $('roleWord').textContent = roomState.word.toUpperCase();
@@ -413,10 +673,22 @@
       $('roleEyebrow').style.color = 'var(--crimson)';
       $('roleWord').textContent = 'JŪS ESATE IMPOSTORIUS';
       $('roleWord').className = 'role-word impostor-text';
-      $('roleHint').textContent = `Užuomina: „${roomState.hintWord}“. Klausykitės kitų ir apsimeskite, kad žinote tikrąjį žodį.`;
+      const mode = roomState.settings.hintMode || 'topic';
+      if(mode === 'word'){
+        $('roleHint').textContent = `Užuomina: „${roomState.hintWord}“ — susijusi, bet ne tikrasis žodis. Apsimeskite, kad žinote.`;
+      } else if(mode === 'topic'){
+        // randam kategoriją pagal žodį
+        let cat = '';
+        for(const c of Object.keys(WORD_BANK)){
+          if(WORD_BANK[c].some(p => p[0] === roomState.word)) { cat = c; break; }
+        }
+        $('roleHint').textContent = `Kategorija: ${cat}. Žodžio nežinote — apsimeskite, kad žinote.`;
+      } else {
+        $('roleHint').textContent = 'Žodžio nežinote. Klausykitės kitų ir apsimeskite, kad žinote.';
+      }
     }
 
-    if(isHost) {
+    if(isHost){
       $('btnToTimer').style.display = 'flex';
       $('revealWait').style.display = 'none';
     } else {
@@ -426,23 +698,27 @@
   }
 
   $('dossier').onclick = () => $('dossier').classList.toggle('flipped');
-  $('btnToTimer').onclick = () => update(ref(db, `rooms/${myRoom}`), { status: 'timer', timerEnd: 0 });
+  $('btnToTimer').onclick = () => safeCall(() => update(ref(db, `rooms/${myRoom}`), { status: 'timer', timerEnd: 0 }));
 
-  function showTimer() {
+  // ---------- TIMER ----------
+  function showTimer(){
     show('screen-timer');
     clearInterval(localTimerInterval);
-    
-    if(isHost) {
+    $('roundMsg').textContent = roomState.roundMessage || '';
+
+    if(isHost){
       $('btnStartTimer').style.display = 'flex';
       $('btnToVoting').style.display = 'flex';
       $('timerWait').style.display = 'none';
+      $('btnStartTimer').textContent = 'Pradėti laikmatį';
+      $('btnStartTimer').disabled = false;
     } else {
       $('btnStartTimer').style.display = 'none';
       $('btnToVoting').style.display = 'none';
       $('timerWait').style.display = 'block';
     }
 
-    if(roomState.timerEnd > 0) {
+    if(roomState.timerEnd > 0){
       $('btnStartTimer').style.display = 'none';
       $('timerWait').style.display = 'none';
       localTimerInterval = setInterval(() => {
@@ -450,13 +726,12 @@
         const m = String(Math.floor(left / 60)).padStart(2, '0');
         const s = String(left % 60).padStart(2, '0');
         $('timerDisplay').textContent = `${m}:${s}`;
-        
+
         const total = roomState.settings.time * 60;
         $('timerRing').style.setProperty('--pct', Math.max(0, Math.round((left/total)*100)));
-        
-        if(left <= 0) {
-            clearInterval(localTimerInterval);
-            if(isHost) $('btnStartTimer').textContent = "Laikas baigėsi";
+
+        if(left <= 0){
+          clearInterval(localTimerInterval);
         }
       }, 1000);
     } else {
@@ -467,76 +742,90 @@
 
   $('btnStartTimer').onclick = () => {
     const endMs = Date.now() + (roomState.settings.time * 60000);
-    update(ref(db, `rooms/${myRoom}`), { timerEnd: endMs });
+    safeCall(() => update(ref(db, `rooms/${myRoom}`), { timerEnd: endMs }));
   };
-  
-  $('btnToVoting').onclick = () => update(ref(db, `rooms/${myRoom}`), { status: 'voting', votes: null });
 
-  // VOTING LOGIC
-  function showVoting() {
+  $('btnToVoting').onclick = () => safeCall(() => update(ref(db, `rooms/${myRoom}`), { status: 'voting', votes: null }));
+
+  // ---------- VOTING ----------
+  function activePlayerIds(){
+    const players = roomState.players || {};
+    const eliminated = roomState.eliminated || {};
+    return Object.keys(players).filter(id => !eliminated[id]);
+  }
+
+  function showVoting(){
     show('screen-voting');
-    const players = Object.keys(roomState.players);
+    const players = roomState.players || {};
     const votes = roomState.votes || {};
-    
-    $('voteStatus').textContent = `Balsavo: ${Object.keys(votes).length} / ${players.length}`;
-    
-    // Render voting grid
-    if(!votes[myName]) {
-      $('voteGrid').innerHTML = players.filter(p => p !== myName).map(p => 
-        `<button class="vote-btn" onclick="window.castVote('${p}')">${p}</button>`
+    const active = activePlayerIds();
+
+    $('voteRoundMsg').textContent = roomState.roundMessage || '';
+    $('voteStatus').textContent = `Balsavo: ${Object.keys(votes).length} / ${active.length}`;
+
+    if(!active.includes(myId)){
+      $('voteGrid').innerHTML = `<div style="text-align:center; padding:20px; color:var(--muted);">Jūs jau nebedalyvaujate šiame raunde.</div>`;
+    } else if(!votes[myId]){
+      $('voteGrid').innerHTML = active.filter(id => id !== myId).map(id =>
+        `<button class="vote-btn" data-target="${id}">${players[id].name}</button>`
       ).join('');
+      document.querySelectorAll('#voteGrid .vote-btn').forEach(btn => {
+        btn.onclick = () => safeCall(() => update(ref(db, `rooms/${myRoom}/votes`), { [myId]: btn.dataset.target }));
+      });
     } else {
       $('voteGrid').innerHTML = `<div style="text-align:center; padding:20px; color:var(--teal);">Jūsų balsas priimtas. Laukiama kitų.</div>`;
     }
 
-    // Host checks tally
-    if(isHost && Object.keys(votes).length === players.length) {
-      tallyVotes(votes, players);
+    if(isHost && Object.keys(votes).length === active.length && active.length > 0){
+      tallyVotes(votes, active);
     }
   }
 
-  window.castVote = (target) => {
-    update(ref(db, `rooms/${myRoom}/votes`), { [myName]: target });
-  };
-
-  function tallyVotes(votes, players) {
-    let counts = {};
-    for(let voter in votes) {
-      let t = votes[voter];
+  function tallyVotes(votes, active){
+    const counts = {};
+    for(const voter in votes){
+      const t = votes[voter];
       counts[t] = (counts[t] || 0) + 1;
     }
 
-    let maxV = 0;
-    let votedOut = null;
-    let tie = false;
-
-    for(let p in counts) {
-      if(counts[p] > maxV) { maxV = counts[p]; votedOut = p; tie = false; }
-      else if(counts[p] === maxV) { tie = true; }
+    let maxV = 0, votedOut = null, tie = false;
+    for(const p in counts){
+      if(counts[p] > maxV){ maxV = counts[p]; votedOut = p; tie = false; }
+      else if(counts[p] === maxV){ tie = true; }
     }
 
-    if(tie || roomState.players[votedOut].role !== 'impostor') {
-      // Crew failed
-      update(ref(db, `rooms/${myRoom}`), { 
-        status: 'results', 
-        winner: 'impostor', 
-        finalReason: tie ? 'Balsuojant įvyko lygiosios.' : `Dauguma išbalsavo nekaltą žaidėją (${votedOut}).` 
-      });
+    if(tie || !votedOut){
+      // lygiosios — balsuojam iš naujo be eliminacijos
+      safeCall(() => update(ref(db, `rooms/${myRoom}`), {
+        votes: null,
+        roundMessage: 'Balsuojant įvyko lygiosios — balsuokite dar kartą.'
+      }));
+      return;
+    }
+
+    const players = roomState.players || {};
+    if(players[votedOut].role !== 'impostor'){
+      // nekaltas žaidėjas išbalsuotas — impostoriai laimi
+      safeCall(() => update(ref(db, `rooms/${myRoom}`), {
+        status: 'results',
+        winner: 'impostor',
+        finalReason: `Dauguma išbalsavo nekaltą žaidėją (${players[votedOut].name}).`
+      }));
     } else {
-      // Impostor caught
-      update(ref(db, `rooms/${myRoom}`), { 
-        status: 'impostor_guess', 
-        caughtImpostor: votedOut 
-      });
+      safeCall(() => update(ref(db, `rooms/${myRoom}`), {
+        status: 'impostor_guess',
+        caughtImpostor: votedOut
+      }));
     }
   }
 
-  // IMPOSTOR GUESS LOGIC
-  function showImpostorGuess() {
+  // ---------- IMPOSTOR GUESS ----------
+  function showImpostorGuess(){
     show('screen-guess');
-    $('caughtName').textContent = roomState.caughtImpostor;
-    
-    if(isHost) {
+    const players = roomState.players || {};
+    $('caughtName').textContent = players[roomState.caughtImpostor] ? players[roomState.caughtImpostor].name : '';
+
+    if(isHost){
       $('guessHostControls').style.display = 'block';
       $('guessWait').style.display = 'none';
     } else {
@@ -546,68 +835,93 @@
   }
 
   $('btnGuessCorrect').onclick = () => {
-    update(ref(db, `rooms/${myRoom}`), { 
-      status: 'results', winner: 'impostor', 
-      finalReason: 'Impostorius buvo pagautas, bet atspėjo teisingą žodį!' 
-    });
+    safeCall(() => update(ref(db, `rooms/${myRoom}`), {
+      status: 'results', winner: 'impostor',
+      finalReason: 'Impostorius buvo pagautas, bet atspėjo teisingą žodį!'
+    }));
   };
 
   $('btnGuessWrong').onclick = () => {
-    update(ref(db, `rooms/${myRoom}`), { 
-      status: 'results', winner: 'crew', 
-      finalReason: 'Impostorius buvo pagautas ir neatspėjo žodžio.' 
-    });
+    const players = roomState.players || {};
+    const eliminated = Object.assign({}, roomState.eliminated || {});
+    eliminated[roomState.caughtImpostor] = true;
+
+    const remainingImpostors = Object.keys(players).filter(id => players[id].role === 'impostor' && !eliminated[id]);
+    const remainingCrew = Object.keys(players).filter(id => players[id].role === 'crew' && !eliminated[id]);
+
+    if(remainingImpostors.length === 0){
+      safeCall(() => update(ref(db, `rooms/${myRoom}`), {
+        status: 'results', winner: 'crew', eliminated,
+        finalReason: 'Visi impostoriai sugauti — komanda laimi!'
+      }));
+    } else if(remainingCrew.length <= remainingImpostors.length){
+      safeCall(() => update(ref(db, `rooms/${myRoom}`), {
+        status: 'results', winner: 'impostor', eliminated,
+        finalReason: 'Likusių žaidėjų per mažai, kad perbalsuotų impostorius — jie laimi.'
+      }));
+    } else {
+      safeCall(() => update(ref(db, `rooms/${myRoom}`), {
+        status: 'timer', eliminated, votes: null, caughtImpostor: null, timerEnd: 0,
+        roundMessage: `Impostorius neatspėjo žodžio ir iškrenta iš žaidimo. Liko rasti dar ${remainingImpostors.length} impostorių(-ius).`
+      }));
+    }
   };
 
-  // RESULTS LOGIC
-  function showResults() {
+  // ---------- RESULTS ----------
+  function showResults(){
     show('screen-results');
     clearInterval(localTimerInterval);
-    
+
     const banner = $('winnerBanner');
-    if(roomState.winner === 'impostor') {
+    if(roomState.winner === 'impostor'){
       banner.textContent = 'LAIMĖJO IMPOSTORIAI';
       banner.className = 'winner-banner impostor';
     } else {
       banner.textContent = 'LAIMĖJO KOMANDA';
       banner.className = 'winner-banner crew';
     }
-    
+
     $('winReason').textContent = roomState.finalReason || '';
-    $('resultWord').textContent = roomState.word.toUpperCase();
-    
-    $('resultsList').innerHTML = Object.keys(roomState.players).map(p => {
-      const isImp = roomState.players[p].role === 'impostor';
+    $('resultWord').textContent = (roomState.word || '').toUpperCase();
+
+    const players = roomState.players || {};
+    const eliminated = roomState.eliminated || {};
+    $('resultsList').innerHTML = Object.keys(players).map(id => {
+      const p = players[id];
+      const isImp = p.role === 'impostor';
+      const elimTag = eliminated[id] ? ' (sugautas)' : '';
       return `<div class="rcard ${isImp ? 'impostor' : 'crew'}">
-        <div class="rname">${p}</div>
+        <div class="rname">${p.name}${elimTag}</div>
         <div class="rrole">${isImp ? 'IMPOSTORIUS' : 'KOMANDOS NARYS'}</div>
       </div>`;
     }).join('');
 
-    if(isHost) {
-        $('btnRestart').style.display = 'flex';
-        $('resultsWait').style.display = 'none';
+    if(isHost){
+      $('btnRestart').style.display = 'flex';
+      $('btnEndRoom').style.display = 'flex';
+      $('resultsWait').style.display = 'none';
     } else {
-        $('btnRestart').style.display = 'none';
-        $('resultsWait').style.display = 'block';
+      $('btnRestart').style.display = 'none';
+      $('btnEndRoom').style.display = 'none';
+      $('resultsWait').style.display = 'block';
     }
   }
 
-  $('btnRestart').onclick = () => update(ref(db, `rooms/${myRoom}`), { status: 'lobby', word: '', hintWord: '', timerEnd: 0, votes: null, caughtImpostor: null });
+  $('btnRestart').onclick = () => {
+    safeCall(() => update(ref(db, `rooms/${myRoom}`), {
+      status: 'lobby', word: null, hintWord: null, timerEnd: 0,
+      votes: null, caughtImpostor: null, eliminated: null,
+      winner: null, finalReason: null, roundMessage: null
+    }));
+  };
 
-  // Pasyvus kambarių valymo skriptas
-  async function cleanOldRooms() {
-    const snap = await get(ref(db, 'rooms'));
-    if (!snap.exists()) return;
-    const rooms = snap.val();
-    const now = Date.now();
-    for (let roomId in rooms) {
-      if (rooms[roomId].createdAt && (now - rooms[roomId].createdAt > 7200000)) {
-        remove(ref(db, `rooms/${roomId}`));
-      }
-    }
-  }
-  cleanOldRooms();
+  $('btnEndRoom').onclick = async () => {
+    if(!confirm('Ištrinti šį kambarį visiems dalyviams? Šio veiksmo atšaukti negalima.')) return;
+    await safeCall(() => deleteRoom(myRoom));
+    location.reload();
+  };
+
+  $('btnLeave').onclick = () => location.reload();
 
 </script>
 </body>
